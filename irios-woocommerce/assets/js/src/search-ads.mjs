@@ -111,7 +111,7 @@ export function requestAds( config, pageType, searchQuery, layout, timing, image
 		.then( function () {
 			timing.loader = now() - timing.start;
 			timing.auctionStart = now();
-			var loader = new window.IriosLoader( Object.assign( adUser(), {
+			var loader = new window.IriosLoader( Object.assign( adUser( pageType ), {
 				pageType: pageType,
 				searchQuery: String( searchQuery ).slice( 0, 255 ),
 				language: config.language,
@@ -339,7 +339,7 @@ export function insertClonedResults( grid, placements, cards, results ) {
 	items.forEach( function ( entry ) {
 		placeAt( grid, entry.item, entry.placement.position );
 		addLabel( entry.item, entry.placement.response );
-		trackAd( entry.item, entry.placement.response );
+		trackAd( entry.item, entry.placement.response, 'SEARCH' );
 	} );
 }
 
@@ -496,7 +496,7 @@ export function insertCards( grid, placements, cards ) {
 		} );
 		placeAt( grid, entry.item, entry.placement.position );
 		addLabel( entry.item, entry.placement.response ); // already on the page: inherits the title's computed alignment
-		trackAd( entry.item, entry.placement.response );
+		trackAd( entry.item, entry.placement.response, 'SEARCH' );
 	} );
 	fixLoopClasses( grid );
 }

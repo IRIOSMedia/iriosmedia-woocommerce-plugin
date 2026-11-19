@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-13 11:13+0100\n"
+"POT-Creation-Date: 2026-11-18 18:02+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,87 +17,87 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/Assets.php:108
+#: src/Assets.php:112
 msgid "Information about this ad"
 msgstr ""
 
-#: src/Assets.php:109
+#: src/Assets.php:113
 msgid "About this ad"
 msgstr ""
 
-#: src/Assets.php:110
+#: src/Assets.php:114
 msgid "Why am I seeing this ad?"
 msgstr ""
 
-#: src/Assets.php:111
+#: src/Assets.php:115
 msgid "You are seeing this ad because of:"
 msgstr ""
 
-#: src/Assets.php:112
+#: src/Assets.php:116
 msgid "No information about you was used. It is shown to everyone who visits this part of the store."
 msgstr ""
 
-#: src/Assets.php:114
+#: src/Assets.php:118
 msgid "The search terms you have used."
 msgstr ""
 
-#: src/Assets.php:115
+#: src/Assets.php:119
 msgid "The content or products you are viewing on this page."
 msgstr ""
 
-#: src/Assets.php:116
+#: src/Assets.php:120
 msgid "The section of the store you are in (home page, search, product page…)."
 msgstr ""
 
-#: src/Assets.php:117
+#: src/Assets.php:121
 msgid "Your approximate location (country)."
 msgstr ""
 
-#: src/Assets.php:118
+#: src/Assets.php:122
 msgid "Your language."
 msgstr ""
 
-#: src/Assets.php:119
+#: src/Assets.php:123
 msgid "Your device, operating system, browser or carrier."
 msgstr ""
 
-#: src/Assets.php:120
+#: src/Assets.php:124
 msgid "Information about you held by the store."
 msgstr ""
 
-#: src/Assets.php:121
+#: src/Assets.php:125
 msgid "Your activity and history in this store."
 msgstr ""
 
-#: src/Assets.php:122
+#: src/Assets.php:126
 msgid "Your previous interaction with the advertiser."
 msgstr ""
 
-#: src/Assets.php:124
+#: src/Assets.php:128
 msgid "Information about you was used to choose it. You can change this as explained in the"
 msgstr ""
 
-#: src/Assets.php:125
+#: src/Assets.php:129
 msgid "privacy policy"
 msgstr ""
 
-#: src/Assets.php:127
+#: src/Assets.php:131
 msgid "About the advertiser"
 msgstr ""
 
-#: src/Assets.php:128
+#: src/Assets.php:132
 msgid "Advertiser name"
 msgstr ""
 
-#: src/Assets.php:129
+#: src/Assets.php:133
 msgid "Who paid for this ad"
 msgstr ""
 
-#: src/Assets.php:130
+#: src/Assets.php:134
 msgid "Not available"
 msgstr ""
 
-#: src/Assets.php:131
+#: src/Assets.php:135
 msgid "Got it"
 msgstr ""
 
@@ -170,320 +170,359 @@ msgid "Until the visitor accepts marketing cookies, only contextual ads are requ
 msgstr ""
 
 #: src/Integration.php:78
-msgid "Sponsored Products"
+msgid "Sensitive Data"
 msgstr ""
 
 #: src/Integration.php:80
-msgid "Product ads in the search results, with the same card as the other products and the ad label."
+msgid "What a shopper looks at or buys can reveal their health (GDPR, art. 9), and ads cannot be based on profiles built with it (DSA, art. 26.3). On sensitive pages and searches no events are sent to IRIOS Media and the ads are requested without identifiers, as without consent; cart events leave out the sensitive products, and orders with a sensitive product are not sent to IRIOS Media."
 msgstr ""
 
-#: src/Integration.php:83 src/Integration.php:114 src/Integration.php:143
-msgid "Enable"
+#: src/Integration.php:83
+msgid "Sensitive categories"
 msgstr ""
 
 #: src/Integration.php:85
-msgid "Show Sponsored Products in the search results"
+msgid "Each category includes all its subcategories, also those created later. A product is sensitive if any of its categories is."
 msgstr ""
 
 #: src/Integration.php:89
-msgid "Search results positions"
+msgid "Searches"
 msgstr ""
 
-#: src/Integration.php:94
-msgid "Sponsored label"
+#: src/Integration.php:91
+msgid "Treat all searches as sensitive"
 msgstr ""
 
-#: src/Integration.php:96
-msgid "Text added to the sponsored cards. For advertising transparency, do not leave it empty."
+#: src/Integration.php:92
+msgid "A search is free text and can reveal a health condition from any page. When checked, no search events are sent and the ads of the search results and of the live search are requested without identifiers."
 msgstr ""
 
-#: src/Integration.php:97 src/Settings.php:411
-msgid "Sponsored"
+#: src/Integration.php:98
+msgid "Sponsored Products"
 msgstr ""
 
 #: src/Integration.php:100
-msgid "Single-result search"
+msgid "Product ads in the search results, with the same card as the other products and the ad label."
 msgstr ""
 
-#: src/Integration.php:102
-msgid "Show the results page instead of going straight to the product page"
+#: src/Integration.php:103 src/Integration.php:134 src/Integration.php:163
+msgid "Enable"
 msgstr ""
 
-#: src/Integration.php:103
-msgid "Without a results page, Sponsored Products cannot be shown."
+#: src/Integration.php:105
+msgid "Show Sponsored Products in the search results"
 msgstr ""
 
 #: src/Integration.php:109
-msgid "Display (Image and Video)"
+msgid "Search results positions"
 msgstr ""
 
-#: src/Integration.php:111
-msgid "Image and video ads in placements of the site: in an automatic position or with [irios_display tag=\"TAG\"] wherever you want to show it (a page, the home page, a WPBakery element, a block, a widget or a category description). When disabled, the shortcodes show nothing."
+#: src/Integration.php:114
+msgid "Sponsored label"
 msgstr ""
 
 #: src/Integration.php:116
-msgid "Show IRIOS Media display ads"
+msgid "Text added to the sponsored cards. For advertising transparency, do not leave it empty."
+msgstr ""
+
+#: src/Integration.php:117 src/Settings.php:458
+msgid "Sponsored"
 msgstr ""
 
 #: src/Integration.php:120
+msgid "Single-result search"
+msgstr ""
+
+#: src/Integration.php:122
+msgid "Show the results page instead of going straight to the product page"
+msgstr ""
+
+#: src/Integration.php:123
+msgid "Without a results page, Sponsored Products cannot be shown."
+msgstr ""
+
+#: src/Integration.php:129
+msgid "Display (Image and Video)"
+msgstr ""
+
+#: src/Integration.php:131
+msgid "Image and video ads in placements of the site: in an automatic position or with [irios_display tag=\"TAG\"] wherever you want to show it (a page, the home page, a WPBakery element, a block, a widget or a category description). When disabled, the shortcodes show nothing."
+msgstr ""
+
+#: src/Integration.php:136
+msgid "Show IRIOS Media display ads"
+msgstr ""
+
+#: src/Integration.php:140
 msgid "Placements"
 msgstr ""
 
-#: src/Integration.php:125
+#: src/Integration.php:145
 msgid "Grid: after product"
 msgstr ""
 
-#: src/Integration.php:127
+#: src/Integration.php:147
 msgid "For the \"Category: in grid\" position: the placement goes after this product of the listing, the full width of the grid."
 msgstr ""
 
-#: src/Integration.php:134
+#: src/Integration.php:154
 msgid "Push Notifications"
 msgstr ""
 
 #. translators: %s: service worker URL
-#: src/Integration.php:138
+#: src/Integration.php:158
 #, php-format
-msgid "Brand notifications for the shoppers who subscribe in their browser, only with consent. The service worker is served at %s: in IRIOS Media, the push ad unit must point to it."
-msgstr ""
-
-#: src/Integration.php:145
-msgid "Ask shoppers to subscribe to IRIOS Media push notifications"
-msgstr ""
-
-#: src/Integration.php:149 src/Integration.php:273 src/Integration.php:312
-msgid "Ad unit ID"
-msgstr ""
-
-#: src/Integration.php:154
-msgid "Ad unit auth"
-msgstr ""
-
-#: src/Integration.php:159
-msgid "When to ask for permission"
-msgstr ""
-
-#: src/Integration.php:162
-msgid "After a purchase"
-msgstr ""
-
-#: src/Integration.php:163
-msgid "After a number of pages"
+msgid "Brand notifications for the shoppers who subscribe in their browser, only with consent. The service worker is served at %s: send IRIOS Media that path, with the leading slash, to set it as the service worker of your store."
 msgstr ""
 
 #: src/Integration.php:165
+msgid "Ask shoppers to subscribe to IRIOS Media push notifications"
+msgstr ""
+
+#: src/Integration.php:169 src/Integration.php:293 src/Integration.php:332
+msgid "Ad unit ID"
+msgstr ""
+
+#: src/Integration.php:174
+msgid "Ad unit auth"
+msgstr ""
+
+#: src/Integration.php:179
+msgid "When to ask for permission"
+msgstr ""
+
+#: src/Integration.php:182
+msgid "After a purchase"
+msgstr ""
+
+#: src/Integration.php:183
+msgid "After a number of pages"
+msgstr ""
+
+#: src/Integration.php:185
 msgid "The browser permission prompt is shown only with consent: after a purchase (on the order received page) or after a number of pages of the visit."
 msgstr ""
 
-#: src/Integration.php:169
+#: src/Integration.php:189
 msgid "Number of pages"
 msgstr ""
 
-#: src/Integration.php:175
+#: src/Integration.php:195
 msgid "Ask again after (days)"
 msgstr ""
 
-#: src/Integration.php:177
+#: src/Integration.php:197
 msgid "If the shopper did not answer the browser prompt, it is not shown again until these days have passed (0: on every visit)."
 msgstr ""
 
-#: src/Integration.php:249
+#: src/Integration.php:269
 msgid "Manual only"
 msgstr ""
 
-#: src/Integration.php:250
+#: src/Integration.php:270
 msgid "Category: sidebar"
 msgstr ""
 
-#: src/Integration.php:251
+#: src/Integration.php:271
 msgid "Category: top"
 msgstr ""
 
-#: src/Integration.php:252
+#: src/Integration.php:272
 msgid "Category: in grid"
 msgstr ""
 
-#: src/Integration.php:253
+#: src/Integration.php:273
 msgid "Category: bottom"
 msgstr ""
 
-#: src/Integration.php:254
+#: src/Integration.php:274
 msgid "Product: description"
 msgstr ""
 
-#: src/Integration.php:255
+#: src/Integration.php:275
 msgid "Product: related"
 msgstr ""
 
-#: src/Integration.php:258
+#: src/Integration.php:278
 msgid "home"
 msgstr ""
 
-#: src/Integration.php:259
+#: src/Integration.php:279
 msgid "Image"
 msgstr ""
 
-#: src/Integration.php:259
+#: src/Integration.php:279
 msgid "Video"
 msgstr ""
 
-#: src/Integration.php:260
+#: src/Integration.php:280
 msgid "All"
 msgstr ""
 
-#: src/Integration.php:260
+#: src/Integration.php:280
 msgid "Desktop"
 msgstr ""
 
-#: src/Integration.php:260
+#: src/Integration.php:280
 msgid "Mobile"
 msgstr ""
 
-#: src/Integration.php:262 src/Integration.php:304
+#: src/Integration.php:282 src/Integration.php:324
 msgid "ad unit auth"
 msgstr ""
 
-#: src/Integration.php:270
+#: src/Integration.php:290
 msgid "Tag"
 msgstr ""
 
-#: src/Integration.php:271
+#: src/Integration.php:291
 msgid "Format"
 msgstr ""
 
-#: src/Integration.php:272
+#: src/Integration.php:292
 msgid "Device"
 msgstr ""
 
-#: src/Integration.php:274 src/Integration.php:313
+#: src/Integration.php:294 src/Integration.php:333
 msgid "Auth"
 msgstr ""
 
-#: src/Integration.php:275 src/Integration.php:311
+#: src/Integration.php:295 src/Integration.php:331
 msgid "Position"
 msgstr ""
 
-#: src/Integration.php:279
+#: src/Integration.php:299
 msgid "Add placement"
 msgstr ""
 
-#: src/Integration.php:280
+#: src/Integration.php:300
 msgid "Tag in lowercase, without spaces (e.g. home, category-sticks). Format: that of the ad unit in IRIOS Media. Device: the same spot can have one row per device (desktop from 768 px wide). Position: Manual only, with [irios_display tag=\"TAG\"] anywhere on the site (also the home page), or automatic: category sidebar (desktop only), above the category grid, inside it, after the category products, before the product description or before the related products."
 msgstr ""
 
-#: src/Integration.php:317
+#: src/Integration.php:337
 msgid "Add position"
 msgstr ""
 
-#: src/Integration.php:318
+#: src/Integration.php:338
 msgid "One ad per row. The position is the place in the results grid: 1 is top left, counted in reading order (left to right, row by row). The same ad unit can take several positions. In the live search dropdown there is at most one ad, at the top: the one of the lowest position."
 msgstr ""
 
-#: src/Integration.php:347
+#: src/Integration.php:368
+msgid "No sensitive categories"
+msgstr ""
+
+#: src/Integration.php:448
 msgid "Remove"
 msgstr ""
 
-#: src/Integration.php:429
+#: src/Integration.php:530
 msgid "IRIOS Media: to show Sponsored Products, add at least one position with its ad unit and auth. Until then, no ads are shown."
 msgstr ""
 
-#: src/Integration.php:432
+#: src/Integration.php:533
 msgid "IRIOS Media: to ask for push notifications, add the push ad unit and its auth. Until then, nothing is asked."
 msgstr ""
 
-#: src/Integration.php:442
+#: src/Integration.php:543
 msgid "IRIOS Media: the IRIOS Media domain is not valid."
 msgstr ""
 
-#: src/Integration.php:450
+#: src/Integration.php:551
 msgid "IRIOS Media: the push Ad unit ID must be a number."
 msgstr ""
 
-#: src/Integration.php:473
+#: src/Integration.php:574
 msgid "IRIOS Media: the Store ID must be a number."
 msgstr ""
 
-#: src/Plugin.php:46
+#: src/Plugin.php:49
 msgid "IRIOS Media for WooCommerce requires WooCommerce to be active."
 msgstr ""
 
-#: src/Plugin.php:61
+#: src/Plugin.php:64
 msgid "IRIOS Media for WooCommerce is not configured: the IRIOS Media domain or the Store ID is missing, so nothing is sent to IRIOS Media."
 msgstr ""
 
-#: src/Plugin.php:63
+#: src/Plugin.php:66
 msgid "Configure"
 msgstr ""
 
-#: src/Plugin.php:68
+#: src/Plugin.php:71
 msgid "IRIOS Media for WooCommerce uses the \"Asesor de Cookies RGPD\" banner, but it is not active: without it there is no consent, so only contextual ads are shown and no events are sent."
 msgstr ""
 
-#: src/Plugin.php:73
+#: src/Plugin.php:76
 msgid "IRIOS Media for WooCommerce uses the WP Consent API, but it is not installed: without it there is no consent, so only contextual ads are shown and no events are sent. Install the \"WP Consent API\" plugin (and a compatible cookie banner) or change the consent mode."
 msgstr ""
 
-#: src/Plugin.php:78
+#: src/Plugin.php:81
 msgid "IRIOS Media for WooCommerce: the WP Consent API is installed, but no cookie banner uses it. Without a banner there is no consent, so only contextual ads are shown and no events are sent. Activate a compatible banner (Complianz, CookieYes, Cookiebot…) or change the consent mode."
 msgstr ""
 
 #. translators: %s: banner tag
-#: src/Settings.php:198
+#: src/Settings.php:229
 #, php-format
 msgid "Invalid tag \"%s\": use lowercase letters, numbers, - or _"
 msgstr ""
 
 #. translators: %s: banner tag
-#: src/Settings.php:206
+#: src/Settings.php:237
 #, php-format
 msgid "Duplicate tag \"%s\""
 msgstr ""
 
 #. translators: 1: placement tag, 2: format
-#: src/Settings.php:214
+#: src/Settings.php:245
 #, php-format
 msgid "Placement \"%1$s\": unknown format \"%2$s\""
 msgstr ""
 
 #. translators: 1: placement tag, 2: device
-#: src/Settings.php:223
+#: src/Settings.php:254
 #, php-format
 msgid "Placement \"%1$s\": unknown device \"%2$s\""
 msgstr ""
 
-#: src/Settings.php
-#, php-format
-msgid "Placement \"%s\": the category sidebar is only shown on desktop, set its device to Desktop"
-msgstr ""
-
 #. translators: %s: banner tag
-#: src/Settings.php:232
+#: src/Settings.php:263
 #, php-format
 msgid "Banner \"%s\": the numeric ad unit id or its auth is missing"
 msgstr ""
 
 #. translators: 1: banner tag, 2: position
-#: src/Settings.php:240
+#: src/Settings.php:271
 #, php-format
 msgid "Banner \"%1$s\": unknown position \"%2$s\""
 msgstr ""
 
+#. translators: %s: banner tag
+#: src/Settings.php:281
+#, php-format
+msgid "Placement \"%s\": the category sidebar is only shown on desktop, set its device to Desktop"
+msgstr ""
+
 #. translators: 1: position entered, 2: highest position
-#: src/Settings.php:371
+#: src/Settings.php:418
 #, php-format
 msgid "Invalid position \"%1$s\": a number from 1 to %2$d"
 msgstr ""
 
 #. translators: %d: position
-#: src/Settings.php:380
+#: src/Settings.php:427
 #, php-format
 msgid "Duplicate position %d"
 msgstr ""
 
 #. translators: %d: position
-#: src/Settings.php:388
+#: src/Settings.php:435
 #, php-format
 msgid "Position %d: the numeric ad unit id or its auth is missing"
+msgstr ""
+
+#. translators: %s: category id
+#: src/Settings.php:524
+#, php-format
+msgid "Sensitive categories: there is no product category with id \"%s\""
 msgstr ""
 
 #: src/Updates.php:102

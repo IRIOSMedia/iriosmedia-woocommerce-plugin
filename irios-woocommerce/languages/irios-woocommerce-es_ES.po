@@ -4,8 +4,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: IRIOS Media for WooCommerce\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-13 11:13+0100\n"
-"PO-Revision-Date: 2026-10-21 00:00+0000\n"
+"POT-Creation-Date: 2026-11-18 18:02+0100\n"
+"PO-Revision-Date: 2026-11-18 00:00+0000\n"
 "Last-Translator: Irios Media\n"
 "Language-Team: Spanish (Spain)\n"
 "Language: es_ES\n"
@@ -14,87 +14,87 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: src/Assets.php:108
+#: src/Assets.php:112
 msgid "Information about this ad"
 msgstr "Información sobre este anuncio"
 
-#: src/Assets.php:109
+#: src/Assets.php:113
 msgid "About this ad"
 msgstr "Acerca de este anuncio"
 
-#: src/Assets.php:110
+#: src/Assets.php:114
 msgid "Why am I seeing this ad?"
 msgstr "¿Cuál es el motivo de que se muestre este anuncio?"
 
-#: src/Assets.php:111
+#: src/Assets.php:115
 msgid "You are seeing this ad because of:"
 msgstr "Estás viendo este anuncio por lo siguiente:"
 
-#: src/Assets.php:112
+#: src/Assets.php:116
 msgid "No information about you was used. It is shown to everyone who visits this part of the store."
 msgstr "No se ha usado información sobre ti. Se muestra a todos los que visitan esta parte de la tienda."
 
-#: src/Assets.php:114
+#: src/Assets.php:118
 msgid "The search terms you have used."
 msgstr "Los términos de búsqueda que has utilizado."
 
-#: src/Assets.php:115
+#: src/Assets.php:119
 msgid "The content or products you are viewing on this page."
 msgstr "El contenido o los productos que estás viendo en esta página."
 
-#: src/Assets.php:116
+#: src/Assets.php:120
 msgid "The section of the store you are in (home page, search, product page…)."
 msgstr "La sección de la tienda en la que estás (portada, búsqueda, ficha de producto…)."
 
-#: src/Assets.php:117
+#: src/Assets.php:121
 msgid "Your approximate location (country)."
 msgstr "Tu ubicación aproximada (país)."
 
-#: src/Assets.php:118
+#: src/Assets.php:122
 msgid "Your language."
 msgstr "Tu idioma."
 
-#: src/Assets.php:119
+#: src/Assets.php:123
 msgid "Your device, operating system, browser or carrier."
 msgstr "Tu dispositivo, sistema operativo, navegador u operador."
 
-#: src/Assets.php:120
+#: src/Assets.php:124
 msgid "Information about you held by the store."
 msgstr "Información sobre ti que tiene la tienda."
 
-#: src/Assets.php:121
+#: src/Assets.php:125
 msgid "Your activity and history in this store."
 msgstr "Tu actividad e historial en esta tienda."
 
-#: src/Assets.php:122
+#: src/Assets.php:126
 msgid "Your previous interaction with the advertiser."
 msgstr "Tu interacción previa con el anunciante."
 
-#: src/Assets.php:124
+#: src/Assets.php:128
 msgid "Information about you was used to choose it. You can change this as explained in the"
 msgstr "Para elegirlo se ha usado información sobre ti. Puedes cambiarlo como se explica en la"
 
-#: src/Assets.php:125
+#: src/Assets.php:129
 msgid "privacy policy"
 msgstr "política de privacidad"
 
-#: src/Assets.php:127
+#: src/Assets.php:131
 msgid "About the advertiser"
 msgstr "Acerca del anunciante"
 
-#: src/Assets.php:128
+#: src/Assets.php:132
 msgid "Advertiser name"
 msgstr "Nombre del anunciante"
 
-#: src/Assets.php:129
+#: src/Assets.php:133
 msgid "Who paid for this ad"
 msgstr "Quién pagó este anuncio"
 
-#: src/Assets.php:130
+#: src/Assets.php:134
 msgid "Not available"
 msgstr "No disponible"
 
-#: src/Assets.php:131
+#: src/Assets.php:135
 msgid "Got it"
 msgstr "He entendido"
 
@@ -167,321 +167,360 @@ msgid "Until the visitor accepts marketing cookies, only contextual ads are requ
 msgstr "Mientras el visitante no acepte las cookies de marketing, solo se piden anuncios contextuales: sin identificadores, sin cookies de IRIOS Media y sin eventos."
 
 #: src/Integration.php:78
+msgid "Sensitive Data"
+msgstr "Datos sensibles"
+
+#: src/Integration.php:80
+msgid "What a shopper looks at or buys can reveal their health (GDPR, art. 9), and ads cannot be based on profiles built with it (DSA, art. 26.3). On sensitive pages and searches no events are sent to IRIOS Media and the ads are requested without identifiers, as without consent; cart events leave out the sensitive products, and orders with a sensitive product are not sent to IRIOS Media."
+msgstr "Lo que un cliente mira o compra puede revelar su salud (RGPD, art. 9), y los anuncios no pueden basarse en perfiles hechos con esos datos (DSA, art. 26.3). En las páginas y búsquedas sensibles no se envían eventos a IRIOS Media y los anuncios se piden sin identificadores, como sin consentimiento; los eventos del carrito no incluyen los productos sensibles, y los pedidos con algún producto sensible no se envían a IRIOS Media."
+
+#: src/Integration.php:83
+msgid "Sensitive categories"
+msgstr "Categorías sensibles"
+
+#: src/Integration.php:85
+msgid "Each category includes all its subcategories, also those created later. A product is sensitive if any of its categories is."
+msgstr "Cada categoría incluye todas sus subcategorías, también las que se creen más adelante. Un producto es sensible si lo es alguna de sus categorías."
+
+#: src/Integration.php:89
+msgid "Searches"
+msgstr "Búsquedas"
+
+#: src/Integration.php:91
+msgid "Treat all searches as sensitive"
+msgstr "Tratar todas las búsquedas como sensibles"
+
+#: src/Integration.php:92
+msgid "A search is free text and can reveal a health condition from any page. When checked, no search events are sent and the ads of the search results and of the live search are requested without identifiers."
+msgstr "Una búsqueda es texto libre y puede revelar un problema de salud desde cualquier página. Si se marca, no se envían eventos de búsqueda y los anuncios de los resultados de búsqueda y del buscador instantáneo se piden sin identificadores."
+
+#: src/Integration.php:98
 msgid "Sponsored Products"
 msgstr "Productos patrocinados"
 
-#: src/Integration.php:80
+#: src/Integration.php:100
 msgid "Product ads in the search results, with the same card as the other products and the ad label."
 msgstr "Anuncios de producto en los resultados de búsqueda, con la misma ficha que el resto de productos y la etiqueta de anuncio."
 
-#: src/Integration.php:83 src/Integration.php:114 src/Integration.php:143
+#: src/Integration.php:103 src/Integration.php:134 src/Integration.php:163
 msgid "Enable"
 msgstr "Activar"
 
-#: src/Integration.php:85
+#: src/Integration.php:105
 msgid "Show Sponsored Products in the search results"
 msgstr "Mostrar productos patrocinados en los resultados de búsqueda"
 
-#: src/Integration.php:89
+#: src/Integration.php:109
 msgid "Search results positions"
 msgstr "Posiciones en los resultados de búsqueda"
 
-#: src/Integration.php:94
+#: src/Integration.php:114
 msgid "Sponsored label"
 msgstr "Etiqueta de patrocinado"
 
-#: src/Integration.php:96
+#: src/Integration.php:116
 msgid "Text added to the sponsored cards. For advertising transparency, do not leave it empty."
 msgstr "Texto que se añade a las fichas patrocinadas. Por transparencia publicitaria, no lo dejes vacío."
 
-#: src/Integration.php:97 src/Settings.php:411
+#: src/Integration.php:117 src/Settings.php:458
 msgid "Sponsored"
 msgstr "Patrocinado"
 
-#: src/Integration.php:100
+#: src/Integration.php:120
 msgid "Single-result search"
 msgstr "Búsqueda con un solo resultado"
 
-#: src/Integration.php:102
+#: src/Integration.php:122
 msgid "Show the results page instead of going straight to the product page"
 msgstr "Mostrar la página de resultados en vez de ir directo a la ficha de producto"
 
-#: src/Integration.php:103
+#: src/Integration.php:123
 msgid "Without a results page, Sponsored Products cannot be shown."
 msgstr "Sin página de resultados no se pueden mostrar productos patrocinados."
 
-#: src/Integration.php:109
+#: src/Integration.php:129
 msgid "Display (Image and Video)"
 msgstr "Display (imagen y vídeo)"
 
-#: src/Integration.php:111
+#: src/Integration.php:131
 msgid "Image and video ads in placements of the site: in an automatic position or with [irios_display tag=\"TAG\"] wherever you want to show it (a page, the home page, a WPBakery element, a block, a widget or a category description). When disabled, the shortcodes show nothing."
 msgstr "Anuncios de imagen y vídeo en huecos del sitio: en una posición automática o con [irios_display tag=\"ETIQUETA\"] donde quieras mostrarlo (una página, la portada, un elemento de WPBakery, un bloque, un widget o la descripción de una categoría). Si lo desactivas, los shortcodes no muestran nada."
 
-#: src/Integration.php:116
+#: src/Integration.php:136
 msgid "Show IRIOS Media display ads"
 msgstr "Mostrar anuncios de display de IRIOS Media"
 
-#: src/Integration.php:120
+#: src/Integration.php:140
 msgid "Placements"
 msgstr "Huecos"
 
-#: src/Integration.php:125
+#: src/Integration.php:145
 msgid "Grid: after product"
 msgstr "Rejilla: tras el producto"
 
-#: src/Integration.php:127
+#: src/Integration.php:147
 msgid "For the \"Category: in grid\" position: the placement goes after this product of the listing, the full width of the grid."
 msgstr "Para la posición «Categoría: en la rejilla»: el hueco va tras este producto del listado, a todo el ancho de la rejilla."
 
-#: src/Integration.php:134
+#: src/Integration.php:154
 msgid "Push Notifications"
 msgstr "Notificaciones push"
 
 #. translators: %s: service worker URL
-#: src/Integration.php:138
+#: src/Integration.php:158
 #, php-format
-msgid "Brand notifications for the shoppers who subscribe in their browser, only with consent. The service worker is served at %s: in IRIOS Media, the push ad unit must point to it."
-msgstr "Notificaciones de marca para los compradores que se suscriban en su navegador, solo con consentimiento. El service worker se sirve en %s: en IRIOS Media, el ad unit de push tiene que apuntar ahí."
+msgid "Brand notifications for the shoppers who subscribe in their browser, only with consent. The service worker is served at %s: send IRIOS Media that path, with the leading slash, to set it as the service worker of your store."
+msgstr "Notificaciones de marca para los compradores que se suscriban en su navegador, solo con consentimiento. El service worker se sirve en %s: envía esa ruta a IRIOS Media, con la barra inicial, para que la configure como service worker de tu tienda."
 
-#: src/Integration.php:145
+#: src/Integration.php:165
 msgid "Ask shoppers to subscribe to IRIOS Media push notifications"
 msgstr "Pedir a los compradores que se suscriban a las notificaciones push de IRIOS Media"
 
-#: src/Integration.php:149 src/Integration.php:273 src/Integration.php:312
+#: src/Integration.php:169 src/Integration.php:293 src/Integration.php:332
 msgid "Ad unit ID"
 msgstr "ID del ad unit"
 
-#: src/Integration.php:154
+#: src/Integration.php:174
 msgid "Ad unit auth"
 msgstr "Auth del ad unit"
 
-#: src/Integration.php:159
+#: src/Integration.php:179
 msgid "When to ask for permission"
 msgstr "Cuándo pedir el permiso"
 
-#: src/Integration.php:162
+#: src/Integration.php:182
 msgid "After a purchase"
 msgstr "Tras una compra"
 
-#: src/Integration.php:163
+#: src/Integration.php:183
 msgid "After a number of pages"
 msgstr "Tras un número de páginas"
 
-#: src/Integration.php:165
+#: src/Integration.php:185
 msgid "The browser permission prompt is shown only with consent: after a purchase (on the order received page) or after a number of pages of the visit."
 msgstr "El navegador solo pide permiso con consentimiento: tras una compra (en la página de pedido recibido) o tras un número de páginas de la visita."
 
-#: src/Integration.php:169
+#: src/Integration.php:189
 msgid "Number of pages"
 msgstr "Número de páginas"
 
-#: src/Integration.php:175
+#: src/Integration.php:195
 msgid "Ask again after (days)"
 msgstr "Volver a preguntar a los (días)"
 
-#: src/Integration.php:177
+#: src/Integration.php:197
 msgid "If the shopper did not answer the browser prompt, it is not shown again until these days have passed (0: on every visit)."
 msgstr "Si el comprador no respondió al aviso del navegador, no se vuelve a mostrar hasta que pasen estos días (0: en cada visita)."
 
-#: src/Integration.php:249
+#: src/Integration.php:269
 msgid "Manual only"
 msgstr "Solo manual"
 
-#: src/Integration.php:250
+#: src/Integration.php:270
 msgid "Category: sidebar"
 msgstr "Categoría: barra lateral"
 
-#: src/Integration.php:251
+#: src/Integration.php:271
 msgid "Category: top"
 msgstr "Categoría: arriba"
 
-#: src/Integration.php:252
+#: src/Integration.php:272
 msgid "Category: in grid"
 msgstr "Categoría: en la rejilla"
 
-#: src/Integration.php:253
+#: src/Integration.php:273
 msgid "Category: bottom"
 msgstr "Categoría: al final"
 
-#: src/Integration.php:254
+#: src/Integration.php:274
 msgid "Product: description"
 msgstr "Producto: descripción"
 
-#: src/Integration.php:255
+#: src/Integration.php:275
 msgid "Product: related"
 msgstr "Producto: relacionados"
 
-#: src/Integration.php:258
+#: src/Integration.php:278
 msgid "home"
 msgstr "portada"
 
-#: src/Integration.php:259
+#: src/Integration.php:279
 msgid "Image"
 msgstr "Imagen"
 
-#: src/Integration.php:259
+#: src/Integration.php:279
 msgid "Video"
 msgstr "Vídeo"
 
-#: src/Integration.php:260
+#: src/Integration.php:280
 msgid "All"
 msgstr "Todos"
 
-#: src/Integration.php:260
+#: src/Integration.php:280
 msgid "Desktop"
 msgstr "Escritorio"
 
-#: src/Integration.php:260
+#: src/Integration.php:280
 msgid "Mobile"
 msgstr "Móvil"
 
-#: src/Integration.php:262 src/Integration.php:304
+#: src/Integration.php:282 src/Integration.php:324
 msgid "ad unit auth"
 msgstr "auth del ad unit"
 
-#: src/Integration.php:270
+#: src/Integration.php:290
 msgid "Tag"
 msgstr "Etiqueta"
 
-#: src/Integration.php:271
+#: src/Integration.php:291
 msgid "Format"
 msgstr "Formato"
 
-#: src/Integration.php:272
+#: src/Integration.php:292
 msgid "Device"
 msgstr "Dispositivo"
 
-#: src/Integration.php:274 src/Integration.php:313
+#: src/Integration.php:294 src/Integration.php:333
 msgid "Auth"
 msgstr "Auth"
 
-#: src/Integration.php:275 src/Integration.php:311
+#: src/Integration.php:295 src/Integration.php:331
 msgid "Position"
 msgstr "Posición"
 
-#: src/Integration.php:279
+#: src/Integration.php:299
 msgid "Add placement"
 msgstr "Añadir hueco"
 
-#: src/Integration.php:280
+#: src/Integration.php:300
 msgid "Tag in lowercase, without spaces (e.g. home, category-sticks). Format: that of the ad unit in IRIOS Media. Device: the same spot can have one row per device (desktop from 768 px wide). Position: Manual only, with [irios_display tag=\"TAG\"] anywhere on the site (also the home page), or automatic: category sidebar (desktop only), above the category grid, inside it, after the category products, before the product description or before the related products."
 msgstr "Etiqueta en minúsculas y sin espacios (por ejemplo portada, categoria-sticks). Formato: el del ad unit en IRIOS Media. Dispositivo: un mismo sitio puede tener una fila por dispositivo (escritorio a partir de 768 px de ancho). Posición: solo manual, con [irios_display tag=\"ETIQUETA\"] en cualquier parte del sitio (también en la portada), o automática: barra lateral de la categoría (solo escritorio), encima de la rejilla de la categoría, dentro de ella, tras los productos de la categoría, antes de la descripción del producto o antes de los productos relacionados."
 
-#: src/Integration.php:317
+#: src/Integration.php:337
 msgid "Add position"
 msgstr "Añadir posición"
 
-#: src/Integration.php:318
+#: src/Integration.php:338
 msgid "One ad per row. The position is the place in the results grid: 1 is top left, counted in reading order (left to right, row by row). The same ad unit can take several positions. In the live search dropdown there is at most one ad, at the top: the one of the lowest position."
 msgstr "Un anuncio por fila. La posición es el lugar en la rejilla de resultados: 1 es arriba a la izquierda, contando en orden de lectura (de izquierda a derecha, fila a fila). Un mismo ad unit puede ocupar varias posiciones. En el desplegable del buscador hay como mucho un anuncio, arriba del todo: el de la posición más baja."
 
-#: src/Integration.php:347
+#: src/Integration.php:368
+msgid "No sensitive categories"
+msgstr "Ninguna categoría sensible"
+
+#: src/Integration.php:448
 msgid "Remove"
 msgstr "Quitar"
 
-#: src/Integration.php:429
+#: src/Integration.php:530
 msgid "IRIOS Media: to show Sponsored Products, add at least one position with its ad unit and auth. Until then, no ads are shown."
 msgstr "IRIOS Media: para mostrar productos patrocinados, añade al menos una posición con su ad unit y su auth. Hasta entonces no se muestra ningún anuncio."
 
-#: src/Integration.php:432
+#: src/Integration.php:533
 msgid "IRIOS Media: to ask for push notifications, add the push ad unit and its auth. Until then, nothing is asked."
 msgstr "IRIOS Media: para pedir notificaciones push, añade el ad unit de push y su auth. Hasta entonces no se pide nada."
 
-#: src/Integration.php:442
+#: src/Integration.php:543
 msgid "IRIOS Media: the IRIOS Media domain is not valid."
 msgstr "IRIOS Media: el dominio de IRIOS Media no es válido."
 
-#: src/Integration.php:450
+#: src/Integration.php:551
 msgid "IRIOS Media: the push Ad unit ID must be a number."
 msgstr "IRIOS Media: el ID del ad unit de push tiene que ser un número."
 
-#: src/Integration.php:473
+#: src/Integration.php:574
 msgid "IRIOS Media: the Store ID must be a number."
 msgstr "IRIOS Media: el ID de tienda tiene que ser un número."
 
-#: src/Plugin.php:46
+#: src/Plugin.php:49
 msgid "IRIOS Media for WooCommerce requires WooCommerce to be active."
 msgstr "IRIOS Media for WooCommerce necesita que WooCommerce esté activo."
 
-#: src/Plugin.php:61
+#: src/Plugin.php:64
 msgid "IRIOS Media for WooCommerce is not configured: the IRIOS Media domain or the Store ID is missing, so nothing is sent to IRIOS Media."
 msgstr "IRIOS Media for WooCommerce no está configurado: falta el dominio de IRIOS Media o el ID de tienda, así que no se envía nada a IRIOS Media."
 
-#: src/Plugin.php:63
+#: src/Plugin.php:66
 msgid "Configure"
 msgstr "Configurar"
 
-#: src/Plugin.php:68
+#: src/Plugin.php:71
 msgid "IRIOS Media for WooCommerce uses the \"Asesor de Cookies RGPD\" banner, but it is not active: without it there is no consent, so only contextual ads are shown and no events are sent."
 msgstr "IRIOS Media for WooCommerce usa el banner «Asesor de Cookies RGPD», pero no está activo: sin él no hay consentimiento, así que solo se muestran anuncios contextuales y no se envía ningún evento."
 
-#: src/Plugin.php:73
+#: src/Plugin.php:76
 msgid "IRIOS Media for WooCommerce uses the WP Consent API, but it is not installed: without it there is no consent, so only contextual ads are shown and no events are sent. Install the \"WP Consent API\" plugin (and a compatible cookie banner) or change the consent mode."
 msgstr "IRIOS Media for WooCommerce usa la WP Consent API, pero no está instalada: sin ella no hay consentimiento, así que solo se muestran anuncios contextuales y no se envía ningún evento. Instala el plugin «WP Consent API» (y un banner de cookies compatible) o cambia el modo de consentimiento."
 
-#: src/Plugin.php:78
+#: src/Plugin.php:81
 msgid "IRIOS Media for WooCommerce: the WP Consent API is installed, but no cookie banner uses it. Without a banner there is no consent, so only contextual ads are shown and no events are sent. Activate a compatible banner (Complianz, CookieYes, Cookiebot…) or change the consent mode."
 msgstr "IRIOS Media for WooCommerce: la WP Consent API está instalada, pero ningún banner de cookies la usa. Sin banner no hay consentimiento, así que solo se muestran anuncios contextuales y no se envía ningún evento. Activa un banner compatible (Complianz, CookieYes, Cookiebot…) o cambia el modo de consentimiento."
 
 #. translators: %s: banner tag
-#: src/Settings.php:198
+#: src/Settings.php:229
 #, php-format
 msgid "Invalid tag \"%s\": use lowercase letters, numbers, - or _"
 msgstr "Etiqueta no válida «%s»: usa minúsculas, números, - o _"
 
 #. translators: %s: banner tag
-#: src/Settings.php:206
+#: src/Settings.php:237
 #, php-format
 msgid "Duplicate tag \"%s\""
 msgstr "Etiqueta repetida «%s»"
 
 #. translators: 1: placement tag, 2: format
-#: src/Settings.php:214
+#: src/Settings.php:245
 #, php-format
 msgid "Placement \"%1$s\": unknown format \"%2$s\""
 msgstr "Hueco «%1$s»: formato desconocido «%2$s»"
 
 #. translators: 1: placement tag, 2: device
-#: src/Settings.php:223
+#: src/Settings.php:254
 #, php-format
 msgid "Placement \"%1$s\": unknown device \"%2$s\""
 msgstr "Hueco «%1$s»: dispositivo desconocido «%2$s»"
 
-#: src/Settings.php
-#, php-format
-msgid "Placement \"%s\": the category sidebar is only shown on desktop, set its device to Desktop"
-msgstr "Hueco «%s»: la barra lateral de la categoría solo se muestra en escritorio; pon su dispositivo en Escritorio"
-
 #. translators: %s: banner tag
-#: src/Settings.php:232
+#: src/Settings.php:263
 #, php-format
 msgid "Banner \"%s\": the numeric ad unit id or its auth is missing"
 msgstr "Banner «%s»: falta el id numérico del ad unit o su auth"
 
 #. translators: 1: banner tag, 2: position
-#: src/Settings.php:240
+#: src/Settings.php:271
 #, php-format
 msgid "Banner \"%1$s\": unknown position \"%2$s\""
 msgstr "Banner «%1$s»: posición desconocida «%2$s»"
 
+#. translators: %s: banner tag
+#: src/Settings.php:281
+#, php-format
+msgid "Placement \"%s\": the category sidebar is only shown on desktop, set its device to Desktop"
+msgstr "Hueco «%s»: la barra lateral de la categoría solo se muestra en escritorio; pon su dispositivo en Escritorio"
+
 #. translators: 1: position entered, 2: highest position
-#: src/Settings.php:371
+#: src/Settings.php:418
 #, php-format
 msgid "Invalid position \"%1$s\": a number from 1 to %2$d"
 msgstr "Posición no válida «%1$s»: un número del 1 al %2$d"
 
 #. translators: %d: position
-#: src/Settings.php:380
+#: src/Settings.php:427
 #, php-format
 msgid "Duplicate position %d"
 msgstr "Posición repetida %d"
 
 #. translators: %d: position
-#: src/Settings.php:388
+#: src/Settings.php:435
 #, php-format
 msgid "Position %d: the numeric ad unit id or its auth is missing"
 msgstr "Posición %d: falta el id numérico del ad unit o su auth"
+
+#. translators: %s: category id
+#: src/Settings.php:524
+#, php-format
+msgid "Sensitive categories: there is no product category with id \"%s\""
+msgstr "Categorías sensibles: no hay ninguna categoría de producto con id «%s»"
 
 #: src/Updates.php:102
 msgid "Release notes"

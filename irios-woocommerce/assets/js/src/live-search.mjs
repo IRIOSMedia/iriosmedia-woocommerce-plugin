@@ -2,6 +2,7 @@ import { addLabel, trackAd } from './ad-info.mjs';
 import { cfg, debugTiming, state, unitsLabel, warnTheme } from './config.mjs';
 import { hasConsent } from './consent.mjs';
 import { PENDING_SEARCH_KEY } from './events.mjs';
+import { sensitiveSearches } from './sensitive.mjs';
 import { cloneResult, itemOf, nativeOf, normalizeUrl, placeAt, requestAds, resultTitle, selector } from './search-ads.mjs';
 import { loadLoader } from './tracker.mjs';
 
@@ -150,7 +151,7 @@ document.addEventListener(
 		var a = e.target instanceof Element ? e.target.closest( 'a[href]' ) : null;
 		var scope = a && isProductLink( a ) ? searchScope( a ) : null;
 		var term = scope ? scope.input.value.trim() : '';
-		if ( term && hasConsent() ) {
+		if ( term && hasConsent() && ! sensitiveSearches() ) {
 			try {
 				window.sessionStorage.setItem( PENDING_SEARCH_KEY, term );
 			} catch ( err ) {}
@@ -257,7 +258,7 @@ export function scanLiveSearch() {
 			items.forEach( function ( entry ) {
 				placeAt( container, entry.item, entry.placement.position );
 				addLabel( entry.item, entry.placement.response );
-				trackAd( entry.item, entry.placement.response );
+				trackAd( entry.item, entry.placement.response, 'SEARCH_BAR' );
 			} );
 			debugTiming( unitsLabel( cfg.liveSearchAds.units ), where, pending.timing, true );
 		} )

@@ -1,5 +1,6 @@
 import { cfg, state } from './config.mjs';
 import { readCookie } from './identity.mjs';
+import { sensitiveAds } from './sensitive.mjs';
 
 // ---- Consent ----------------------------------------------------------------------------------------------------
 
@@ -26,9 +27,10 @@ export function hasConsent() {
 /**
  * Identification for requesting and tracking ads. With consent, uids and session; without it, contextual ads
  * (based on the search or page): consent.gdpr = false and the Irios script neither reads nor stores cookies or IDs.
+ * pageType: the IRIOS page type the ads are for; on a sensitive page or search (sensitive.mjs) they are contextual too.
  */
-export function adUser() {
-	return hasConsent()
+export function adUser( pageType ) {
+	return hasConsent() && ! sensitiveAds( pageType )
 		? { uids: state.uids, sessionId: state.sessionId, consent: { gdpr: true } }
 		: { consent: { gdpr: false } };
 }

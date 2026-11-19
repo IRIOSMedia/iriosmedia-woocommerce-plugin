@@ -57,6 +57,12 @@ final class IntegrationFormTest extends WordPressTestCase {
 		);
 	}
 
+	public function test_sensitive_categories_and_searches_can_be_set_and_searches_are_off_by_default(): void {
+		$this->assertSame( 'irios_categories', $this->integration->form_fields['sensitive_categories']['type'] );
+		$this->assertSame( 'checkbox', $this->integration->form_fields['sensitive_searches']['type'] );
+		$this->assertSame( 'no', $this->integration->form_fields['sensitive_searches']['default'] );
+	}
+
 	public function test_the_table_of_positions_draws_a_row_per_saved_position_and_an_empty_one(): void {
 		$this->integration->settings = array(
 			'sponsored_slots' => (string) json_encode( array( array( 'position' => 1, 'id' => 3263, 'auth' => 'abc' ) ) ),

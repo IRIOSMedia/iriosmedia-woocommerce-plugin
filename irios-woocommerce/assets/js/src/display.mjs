@@ -181,7 +181,7 @@ export function renderBanners() {
 		.then( function () {
 			var loaderMs = now() - start;
 			var auctionStart = now(); // the auction starts in the loader constructor
-			window.__iriosWooBanners = new window.IriosLoader( Object.assign( adUser(), context, {
+			window.__iriosWooBanners = new window.IriosLoader( Object.assign( adUser( context.pageType ), context, {
 				adUnits: Object.keys( units ).map( function ( id ) {
 					return { id: Number( id ), auth: units[ id ].auth, type: units[ id ].type };
 				} ),

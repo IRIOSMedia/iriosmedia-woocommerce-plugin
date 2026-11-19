@@ -2,6 +2,24 @@
 
 Changes in each version of IRIOS Media for WooCommerce. Download any version from the [releases](../../releases).
 
+## Unreleased
+
+### Added
+
+- **Sensitive Data** (General): the store can mark product categories as sensitive (health…), and optionally **treat
+  all searches as sensitive** (off by default). A category covers all its subcategories, also those created later, and
+  a product is sensitive if any of its categories is. Then, even with consent, nothing about them reaches IRIOS Media
+  tied to the shopper (GDPR, art. 9; DSA, art. 26.3):
+  - no page events of a sensitive category or product page (nor search events when searches are sensitive); cart
+    events leave out the sensitive products, and are not sent if none is left;
+  - the ads of those pages (and of the search results and live search, when searches are sensitive) are requested
+    without identifiers, as without consent; they are still shown;
+  - orders with a sensitive product are left out of the plugin's API, so the purchase never reaches IRIOS Media.
+    Customers and the catalog are not affected.
+
+  Whatever cannot be checked (a product that no longer exists) counts as sensitive. Nothing changes until a category
+  is marked or searches are set as sensitive.
+
 ## 1.1.3 - 2026-11-18
 
 ### Added

@@ -51,6 +51,11 @@ final class AssetsConfigTest extends WordPressTestCase {
 		$this->assertSame( 'https://shop.test/wp-json/irios/v1/cards', $config['cardsUrl'] );
 	}
 
+	public function test_it_says_whether_every_search_is_sensitive(): void {
+		$this->assertFalse( $this->config( array() )['sensitiveSearches'] );
+		$this->assertTrue( $this->config( array( 'sensitive_searches' => 'yes' ) )['sensitiveSearches'] );
+	}
+
 	public function test_nothing_about_the_visitor_travels_in_the_page(): void {
 		$config = $this->config( array( 'js_domain' => 'shop.iriosmedia.online', 'store_id' => '33' ) );
 

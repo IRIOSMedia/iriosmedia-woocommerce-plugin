@@ -229,10 +229,12 @@ class WC_Session_Handler {
 class WP_Term {
 	public int $term_id;
 	public string $name;
+	public int $parent;
 
-	public function __construct( int $term_id, string $name ) {
+	public function __construct( int $term_id, string $name, int $parent = 0 ) {
 		$this->term_id = $term_id;
 		$this->name    = $name;
+		$this->parent  = $parent;
 	}
 }
 

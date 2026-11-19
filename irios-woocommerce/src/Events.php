@@ -15,6 +15,7 @@ namespace Irios\WooCommerce;
  *   request, concurrent with an "add to cart", would overwrite the cart or the events. They go in a per-customer
  *   transient.
  * - Never purchase: that is sent by the sync service.
+ * - Nothing about sensitive categories or products, nor searches if they are all sensitive (Sensitive).
  */
 final class Events {
 
@@ -44,6 +45,10 @@ final class Events {
 		}
 		if ( array() !== $context['category'] ) {
 			$data['category'] = $context['category'];
+		}
+		// A sensitive page (Sensitive): the JS sends none of its events and requests its ads without identifiers
+		if ( Sensitive::page( $settings ) ) {
+			$data['sensitive'] = true;
 		}
 		return $data;
 	}
@@ -231,7 +236,7 @@ final class Events {
 			return false;
 		}
 		$query = trim( (string) get_search_query( false ) );
-		if ( '' !== $query ) {
+		if ( '' !== $query && ! $settings->sensitive_searches() ) {
 			self::push_event( array( 'id' => 'search', 'value' => $query ) );
 		}
 		return true;
@@ -287,7 +292,12 @@ final class Events {
 		return self::TRANSIENT_PREFIX . md5( $customer );
 	}
 
+	/** A cart event, without its sensitive products (Sensitive); none left, no event. */
 	private static function push( string $event_id, array $products ): void {
+		$products = Sensitive::without_sensitive( $products );
+		if ( array() === $products ) {
+			return;
+		}
 		self::push_event(
 			array(
 				'id'       => $event_id,

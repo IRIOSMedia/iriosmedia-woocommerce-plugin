@@ -2,25 +2,33 @@ import { page, state } from './config.mjs';
 import { hasConsent } from './consent.mjs';
 import { send } from './events-api.mjs';
 import { fetchContext } from './identity.mjs';
+import { sensitivePage, sensitiveSearches } from './sensitive.mjs';
 
 // ---- Store events -----------------------------------------------------------------------------------------------
 
 export var PENDING_SEARCH_KEY = 'irios_pending_search';
 
+/**
+ * The events of the page being viewed. A sensitive page (sensitive.mjs) sends none of its own: no page-view,
+ * category-view, product-view nor search. Checkout steps carry no products and are never sensitive.
+ */
 export function pageEvents() {
-	var events = [ { id: 'page-view', value: window.location.pathname } ];
+	var sensitive = sensitivePage();
+	var events = sensitive ? [] : [ { id: 'page-view', value: window.location.pathname } ];
 	// Search made in live search and finished by clicking a result (see liveSearch).
 	var pending = null;
 	try {
 		pending = window.sessionStorage.getItem( PENDING_SEARCH_KEY );
 		window.sessionStorage.removeItem( PENDING_SEARCH_KEY );
 	} catch ( e ) {}
-	if ( pending ) {
+	if ( pending && ! sensitiveSearches() ) {
 		events.push( { id: 'search', value: pending } );
 	}
-	if ( page.type === 'category' && page.value ) {
+	if ( sensitive ) {
+		state.lastVariation = null;
+	} else if ( page.type === 'category' && page.value ) {
 		events.push( { id: 'category-view', value: page.value } );
-	} else if ( page.type === 'search' && page.value ) {
+	} else if ( page.type === 'search' && page.value && ! sensitiveSearches() ) {
 		events.push( { id: 'search', value: page.value } );
 	} else if ( page.type === 'checkout' ) {
 		events.push( { id: 'checkout-step', value: page.value } );
@@ -33,7 +41,7 @@ export function pageEvents() {
 
 /** Variable product: event for the selected variation, unless it is the same as the previous one. */
 export function onVariation( variation ) {
-	if ( ! variation || ! variation.variation_id || ! page.product ) {
+	if ( ! variation || ! variation.variation_id || ! page.product || sensitivePage() ) {
 		return;
 	}
 	var id = String( variation.variation_id );

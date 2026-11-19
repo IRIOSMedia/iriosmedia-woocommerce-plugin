@@ -77,6 +77,10 @@ final class Settings {
 		'keep_single_result'       => 'yes',
 		'max_ads'                  => '4',
 		'consent_mode'             => self::CONSENT_WP_CONSENT_API,
+		// Sensitive data (health…): ids of the product categories marked as sensitive, comma separated, and whether
+		// every search is sensitive too
+		'sensitive_categories'     => '',
+		'sensitive_searches'       => 'no',
 	);
 
 	/** @var array<string,string> */
@@ -474,6 +478,61 @@ final class Settings {
 	}
 
 
+
+	/**
+	 * Product categories marked as sensitive (health…): their pages and products, and those of all their
+	 * subcategories, never reach IRIOS Media tied to a person (see Sensitive).
+	 *
+	 * @return int[]
+	 */
+	public function sensitive_categories(): array {
+		$ids = array();
+		foreach ( explode( ',', $this->values['sensitive_categories'] ) as $id ) {
+			if ( self::is_positive_int( $id ) ) {
+				$ids[ (int) $id ] = (int) $id;
+			}
+		}
+		return array_values( $ids );
+	}
+
+	/** "Treat all searches as sensitive": no search events, and search ads without identifiers. */
+	public function sensitive_searches(): bool {
+		return 'yes' === $this->values['sensitive_searches'];
+	}
+
+	/**
+	 * Validates the sensitive categories chosen on the settings screen against the store's product categories. An id
+	 * that is not one of them (deleted while the screen was open) is dropped with its error.
+	 *
+	 * @param mixed $value    Ids submitted (array, or a comma-separated string).
+	 * @param int[] $existing Ids of the store's product categories.
+	 * @return array{ids:int[],errors:string[]}
+	 */
+	public static function sanitize_sensitive_categories( $value, array $existing ): array {
+		$values   = is_array( $value ) ? $value : explode( ',', (string) $value );
+		$existing = array_map( 'intval', $existing );
+		$ids      = array();
+		$errors   = array();
+		foreach ( $values as $id ) {
+			$id = is_scalar( $id ) ? trim( (string) $id ) : '';
+			if ( '' === $id ) {
+				continue;
+			}
+			if ( ! self::is_positive_int( $id ) || ! in_array( (int) $id, $existing, true ) ) {
+				$errors[] = sprintf(
+					/* translators: %s: category id */
+					__( 'Sensitive categories: there is no product category with id "%s"', 'irios-woocommerce' ),
+					$id
+				);
+				continue;
+			}
+			$ids[ (int) $id ] = (int) $id;
+		}
+		return array(
+			'ids'    => array_values( $ids ),
+			'errors' => $errors,
+		);
+	}
 
 	// ---- Validation (used by the settings screen) ------------------------------------------------------------------
 

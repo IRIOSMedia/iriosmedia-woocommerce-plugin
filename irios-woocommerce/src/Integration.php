@@ -73,6 +73,26 @@ final class Integration extends \WC_Integration {
 				'default'     => $defaults['consent_mode'],
 			),
 
+			// ---- Sensitive data (health…): kept away from the shopper's profile ------------------------------------
+			'section_sensitive'        => array(
+				'title'       => __( 'Sensitive Data', 'irios-woocommerce' ),
+				'type'        => 'title',
+				'description' => __( 'What a shopper looks at or buys can reveal their health (GDPR, art. 9), and ads cannot be based on profiles built with it (DSA, art. 26.3). On sensitive pages and searches no events are sent to IRIOS Media and the ads are requested without identifiers, as without consent; cart events leave out the sensitive products, and orders with a sensitive product are not sent to IRIOS Media.', 'irios-woocommerce' ),
+			),
+			'sensitive_categories'     => array(
+				'title'       => __( 'Sensitive categories', 'irios-woocommerce' ),
+				'type'        => 'irios_categories',
+				'description' => __( 'Each category includes all its subcategories, also those created later. A product is sensitive if any of its categories is.', 'irios-woocommerce' ),
+				'default'     => $defaults['sensitive_categories'],
+			),
+			'sensitive_searches'       => array(
+				'title'       => __( 'Searches', 'irios-woocommerce' ),
+				'type'        => 'checkbox',
+				'label'       => __( 'Treat all searches as sensitive', 'irios-woocommerce' ),
+				'description' => __( 'A search is free text and can reveal a health condition from any page. When checked, no search events are sent and the ads of the search results and of the live search are requested without identifiers.', 'irios-woocommerce' ),
+				'default'     => $defaults['sensitive_searches'],
+			),
+
 			// ---- Sponsored Products (optional) ---------------------------------------------------------------------
 			'section_sponsored'        => array(
 				'title'       => __( 'Sponsored Products', 'irios-woocommerce' ),
@@ -135,7 +155,7 @@ final class Integration extends \WC_Integration {
 				'type'        => 'title',
 				'description' => sprintf(
 					/* translators: %s: service worker URL */
-					__( 'Brand notifications for the shoppers who subscribe in their browser, only with consent. The service worker is served at %s: in IRIOS Media, the push ad unit must point to it.', 'irios-woocommerce' ),
+					__( 'Brand notifications for the shoppers who subscribe in their browser, only with consent. The service worker is served at %s: send IRIOS Media that path, with the leading slash, to set it as the service worker of your store.', 'irios-woocommerce' ),
 					Push::url()
 				),
 			),
@@ -317,6 +337,87 @@ final class Integration extends \WC_Integration {
 			__( 'Add position', 'irios-woocommerce' ),
 			__( 'One ad per row. The position is the place in the results grid: 1 is top left, counted in reading order (left to right, row by row). The same ad unit can take several positions. In the live search dropdown there is at most one ad, at the top: the one of the lowest position.', 'irios-woocommerce' )
 		);
+	}
+
+	/**
+	 * The sensitive categories: a multiple select (WooCommerce's enhanced select) of the store's product categories,
+	 * each with its path (Parent > Child). Submitted as woocommerce_irios_sensitive_categories[] and stored as their
+	 * ids, comma separated. The categories are read here, when the screen is drawn: the integration is built before
+	 * WordPress registers the taxonomies.
+	 *
+	 * @param string $key @param array<string,mixed> $data
+	 */
+	public function generate_irios_categories_html( $key, $data ): string {
+		$field    = $this->get_field_key( $key );
+		$selected = ( new Settings( array( 'sensitive_categories' => (string) $this->get_option( $key, '' ) ) ) )->sensitive_categories();
+		$options  = '';
+		foreach ( self::category_paths() as $id => $path ) {
+			$options .= sprintf(
+				'<option value="%d"%s>%s</option>',
+				(int) $id,
+				in_array( (int) $id, $selected, true ) ? ' selected="selected"' : '',
+				esc_html( $path )
+			);
+		}
+		ob_start();
+		?>
+		<tr valign="top">
+			<th scope="row" class="titledesc"><label for="<?php echo esc_attr( $field ); ?>"><?php echo esc_html( $data['title'] ); ?></label></th>
+			<td class="forminp">
+				<fieldset>
+					<select multiple="multiple" class="multiselect wc-enhanced-select" name="<?php echo esc_attr( $field ); ?>[]" id="<?php echo esc_attr( $field ); ?>" style="width: 400px;" data-placeholder="<?php echo esc_attr__( 'No sensitive categories', 'irios-woocommerce' ); ?>"><?php echo $options; // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above ?></select>
+					<p class="description"><?php echo esc_html( $data['description'] ?? '' ); ?></p>
+				</fieldset>
+			</td>
+		</tr>
+		<?php
+		return (string) ob_get_clean();
+	}
+
+	/**
+	 * The store's product categories: id → path (Parent > Child), sorted by path.
+	 *
+	 * @return array<int,string>
+	 */
+	private static function category_paths(): array {
+		$terms = get_terms(
+			array(
+				'taxonomy'   => 'product_cat',
+				'hide_empty' => false,
+			)
+		);
+		if ( ! is_array( $terms ) ) {
+			return array();
+		}
+		$by_id = array();
+		foreach ( $terms as $term ) {
+			if ( $term instanceof \WP_Term ) {
+				$by_id[ (int) $term->term_id ] = $term;
+			}
+		}
+		$paths = array();
+		foreach ( $by_id as $id => $term ) {
+			$names = array( $term->name );
+			$seen  = array( $id => true );
+			$up    = (int) $term->parent;
+			while ( $up > 0 && isset( $by_id[ $up ] ) && ! isset( $seen[ $up ] ) ) {
+				array_unshift( $names, $by_id[ $up ]->name );
+				$seen[ $up ] = true;
+				$up          = (int) $by_id[ $up ]->parent;
+			}
+			$paths[ $id ] = Catalog::join_path( $names );
+		}
+		uasort( $paths, 'strnatcasecmp' );
+		return $paths;
+	}
+
+	/** @param string $key @param mixed $value Ids of the categories chosen as sensitive. */
+	public function validate_sensitive_categories_field( $key, $value ): string {
+		$result = Settings::sanitize_sensitive_categories( is_array( $value ) ? $value : array(), array_keys( self::category_paths() ) );
+		foreach ( $result['errors'] as $error ) {
+			\WC_Admin_Settings::add_error( 'IRIOS Media: ' . $error );
+		}
+		return implode( ',', $result['ids'] );
 	}
 
 	private static function text_input( string $field, string $index, string $name, string $value, string $placeholder ): string {

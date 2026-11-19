@@ -173,22 +173,25 @@ export function storeApiAddItem( productId ) {
  * Load and viewability on the card; clicks only on the product page links. IriosTracker turns any click
  * on a link into a navigation, and the add-to-cart button must keep working via AJAX.
  */
-/** Tracks ad load, viewability and click; waits for the tracker (the ad may arrive first). */
-export function trackAd( item, response ) {
+/**
+ * Tracks ad load, viewability and click; waits for the tracker (the ad may arrive first). pageType: that of the
+ * auction, so an ad of a sensitive page or search is tracked without identifiers, like it was requested.
+ */
+export function trackAd( item, response, pageType ) {
 	loadTracker()
 		.then( function () {
-			trackAdNow( item, response );
+			trackAdNow( item, response, pageType );
 		} )
 		.catch( function () {} );
 }
 
-export function trackAdNow( item, response ) {
+export function trackAdNow( item, response, pageType ) {
 	var urls = nativeOf( response ).trackingUrls || {};
 	if ( typeof window.IriosTracker !== 'function' ) {
 		return;
 	}
 	// Documented fields (tracking-*) and, while the previous tracker is still deployed, the ones it read (*Urls).
-	var user = adUser();
+	var user = adUser( pageType );
 	var units = [
 		Object.assign( {}, user, {
 			element: item,

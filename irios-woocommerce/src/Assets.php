@@ -89,6 +89,8 @@ final class Assets {
 			// Where each thing is in this theme's HTML; a theme can change them with the irios_woocommerce_selectors filter
 			'selectors'       => Selectors::all(),
 			'liveSearchAds'   => self::live_search_ads( $settings ),
+			// Every search is sensitive: no search events, and search ads without identifiers (Sensitive)
+			'sensitiveSearches' => $settings->sensitive_searches(),
 			'bannersEnabled'  => $settings->banners_enabled(),
 			'gridAfter'       => $settings->display_in_grid_after(),
 			// Push notifications: the ad unit, when to ask and the service worker served at the site root (Push::PATH)

@@ -12,6 +12,8 @@ namespace Irios\WooCommerce;
  *   GET /wp-json/irios/v1/customers?page=&per_page=   (registered customers with an order placed with consent)
  *   GET /wp-json/irios/v1/customers/<id>
  *
+ * Orders with a product of a sensitive category are never returned (Sensitive): the purchase does not reach IRIOS Media.
+ *
  * Paginated like the WooCommerce REST API (X-WP-Total, X-WP-TotalPages). Authenticated with a WooCommerce REST API key
  * with read access, like the wc/v3 API, and only for users who can read the shop's orders.
  */
@@ -129,12 +131,17 @@ final class Feed {
 			$args['date_created'] = '<' . $before;
 		}
 		$result = wc_get_orders( $args );
-		return self::page( array_map( array( self::class, 'order_data' ), $result->orders ), (int) $result->total, (int) $result->max_num_pages );
+		// Orders with a sensitive product are left out of the page (Sensitive). The totals stay those of WooCommerce,
+		// so the pages keep their size and number: a page can just bring fewer orders.
+		$orders = array_filter( $result->orders, static fn ( $order ): bool => ! Sensitive::order( $order ) );
+		return self::page( array_values( array_map( array( self::class, 'order_data' ), $orders ) ), (int) $result->total, (int) $result->max_num_pages );
 	}
 
 	public static function order( \WP_REST_Request $request ) {
 		$order = wc_get_order( (int) $request['id'] );
-		if ( ! $order instanceof \WC_Order || 'shop_order' !== $order->get_type() ) {
+		// An order with a sensitive product does not exist for IRIOS Media (Sensitive): with a 404 the sync service
+		// neither sends it nor retries it
+		if ( ! $order instanceof \WC_Order || 'shop_order' !== $order->get_type() || Sensitive::order( $order ) ) {
 			return new \WP_Error( 'irios_not_found', 'Order not found.', array( 'status' => 404 ) );
 		}
 		return new \WP_REST_Response( self::order_data( $order ) );

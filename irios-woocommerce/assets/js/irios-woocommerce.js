@@ -170,6 +170,26 @@
     });
   }
 
+  // irios-woocommerce/assets/js/src/sensitive.mjs
+  function sensitivePage() {
+    return !!page.sensitive;
+  }
+  function sensitiveSearches() {
+    return !!cfg.sensitiveSearches;
+  }
+  function sensitiveAds(pageType) {
+    if (!pageType) {
+      return false;
+    }
+    if (pageType === "SEARCH_BAR") {
+      return sensitiveSearches();
+    }
+    if (pageType === "SEARCH") {
+      return sensitiveSearches() || sensitivePage();
+    }
+    return sensitivePage();
+  }
+
   // irios-woocommerce/assets/js/src/consent.mjs
   function consentType() {
     if (typeof window.wp_consent_type !== "undefined") {
@@ -186,8 +206,8 @@
     }
     return !!consentType() && typeof window.wp_has_consent === "function" && window.wp_has_consent(cfg.consentCategory);
   }
-  function adUser() {
-    return hasConsent() ? { uids: state.uids, sessionId: state.sessionId, consent: { gdpr: true } } : { consent: { gdpr: false } };
+  function adUser(pageType) {
+    return hasConsent() && !sensitiveAds(pageType) ? { uids: state.uids, sessionId: state.sessionId, consent: { gdpr: true } } : { consent: { gdpr: false } };
   }
   function asesorConsent() {
     var name = window.cdpCookiesConfig && window.cdpCookiesConfig.cookieName || cfg.asesorCookie;
@@ -267,7 +287,7 @@
     return loadLoader().then(function() {
       timing.loader = now() - timing.start;
       timing.auctionStart = now();
-      var loader = new window.IriosLoader(Object.assign(adUser(), {
+      var loader = new window.IriosLoader(Object.assign(adUser(pageType), {
         pageType: pageType,
         searchQuery: String(searchQuery).slice(0, 255),
         language: config.language,
@@ -455,7 +475,7 @@
     items.forEach(function(entry) {
       placeAt(grid, entry.item, entry.placement.position);
       addLabel(entry.item, entry.placement.response);
-      trackAd(entry.item, entry.placement.response);
+      trackAd(entry.item, entry.placement.response, "SEARCH");
     });
   }
   function resultTitle(item, url) {
@@ -589,7 +609,7 @@
       });
       placeAt(grid, entry.item, entry.placement.position);
       addLabel(entry.item, entry.placement.response);
-      trackAd(entry.item, entry.placement.response);
+      trackAd(entry.item, entry.placement.response, "SEARCH");
     });
     fixLoopClasses(grid);
   }
@@ -752,18 +772,18 @@
       return false;
     });
   }
-  function trackAd(item, response) {
+  function trackAd(item, response, pageType) {
     loadTracker().then(function() {
-      trackAdNow(item, response);
+      trackAdNow(item, response, pageType);
     }).catch(function() {
     });
   }
-  function trackAdNow(item, response) {
+  function trackAdNow(item, response, pageType) {
     var urls = nativeOf(response).trackingUrls || {};
     if (typeof window.IriosTracker !== "function") {
       return;
     }
-    var user = adUser();
+    var user = adUser(pageType);
     var units = [
       Object.assign({}, user, {
         element: item,
@@ -923,7 +943,7 @@
     loadLoader().then(function() {
       var loaderMs = now() - start2;
       var auctionStart = now();
-      window.__iriosWooBanners = new window.IriosLoader(Object.assign(adUser(), context, {
+      window.__iriosWooBanners = new window.IriosLoader(Object.assign(adUser(context.pageType), context, {
         adUnits: Object.keys(units).map(function(id) {
           return { id: Number(id), auth: units[id].auth, type: units[id].type };
         })
@@ -1087,19 +1107,22 @@
   // irios-woocommerce/assets/js/src/events.mjs
   var PENDING_SEARCH_KEY = "irios_pending_search";
   function pageEvents() {
-    var events = [{ id: "page-view", value: window.location.pathname }];
+    var sensitive = sensitivePage();
+    var events = sensitive ? [] : [{ id: "page-view", value: window.location.pathname }];
     var pending = null;
     try {
       pending = window.sessionStorage.getItem(PENDING_SEARCH_KEY);
       window.sessionStorage.removeItem(PENDING_SEARCH_KEY);
     } catch (e) {
     }
-    if (pending) {
+    if (pending && !sensitiveSearches()) {
       events.push({ id: "search", value: pending });
     }
-    if (page.type === "category" && page.value) {
+    if (sensitive) {
+      state.lastVariation = null;
+    } else if (page.type === "category" && page.value) {
       events.push({ id: "category-view", value: page.value });
-    } else if (page.type === "search" && page.value) {
+    } else if (page.type === "search" && page.value && !sensitiveSearches()) {
       events.push({ id: "search", value: page.value });
     } else if (page.type === "checkout") {
       events.push({ id: "checkout-step", value: page.value });
@@ -1110,7 +1133,7 @@
     return events;
   }
   function onVariation(variation) {
-    if (!variation || !variation.variation_id || !page.product) {
+    if (!variation || !variation.variation_id || !page.product || sensitivePage()) {
       return;
     }
     var id = String(variation.variation_id);
@@ -1441,7 +1464,7 @@
       var a = e.target instanceof Element ? e.target.closest("a[href]") : null;
       var scope = a && isProductLink(a) ? searchScope(a) : null;
       var term = scope ? scope.input.value.trim() : "";
-      if (term && hasConsent()) {
+      if (term && hasConsent() && !sensitiveSearches()) {
         try {
           window.sessionStorage.setItem(PENDING_SEARCH_KEY, term);
         } catch (err) {
@@ -1541,7 +1564,7 @@
       items.forEach(function(entry) {
         placeAt(container, entry.item, entry.placement.position);
         addLabel(entry.item, entry.placement.response);
-        trackAd(entry.item, entry.placement.response);
+        trackAd(entry.item, entry.placement.response, "SEARCH_BAR");
       });
       debugTiming(unitsLabel(cfg.liveSearchAds.units), where, pending.timing, true);
     }).catch(function() {

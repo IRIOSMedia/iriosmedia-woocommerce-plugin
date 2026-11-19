@@ -78,13 +78,13 @@ describe("search ads", () => {
   });
 
   it("«About this ad» names the brand as advertiser and the advertiser as who paid, when IRIOS Media gives both", async () => {
-    const ad = { ...winner(UNIT, 1, 7), brandName: "Farmacia Andalucia", advertiserName: "Andalucia Farmacia" };
+    const ad = { ...winner(UNIT, 1, 7), brandName: "Example Pharmacy", advertiserName: "Example Pharmacy Ltd" };
     const { document } = search({ winners: [ad] });
     await settle();
     document.querySelector(".irios-sponsored .irios-ad-info").click();
     const items = [...document.querySelectorAll('.irios-ad-info-overlay [role="dialog"] li')].map((li) => li.textContent);
-    expect(items).toContain("Advertiser name: Farmacia Andalucia");
-    expect(items).toContain("Who paid for this ad: Andalucia Farmacia");
+    expect(items).toContain("Advertiser name: Example Pharmacy");
+    expect(items).toContain("Who paid for this ad: Example Pharmacy Ltd");
   });
 
   it("tracks load and view on the card and clicks only on links to the product, never on add to cart", async () => {

@@ -10,6 +10,7 @@
  * What each module does:
  *   config       the settings PHP printed, the page, and debug mode
  *   consent      whether there is consent, and noticing when it is given or withdrawn
+ *   sensitive    sensitive pages and searches (health…): no events, ads without identifiers
  *   identity     the uids of the logged-in customer and the session
  *   tracker      loading the Irios script, the event queue, start() and stop()
  *   events-api   window.IriosWoo.track for custom events

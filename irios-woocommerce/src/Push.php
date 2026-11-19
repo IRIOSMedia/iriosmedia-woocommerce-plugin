@@ -7,7 +7,7 @@ namespace Irios\WooCommerce;
  * needs to receive the notifications of the whole site (a file under /wp-content/plugins/ could only cover that
  * folder). It is answered by WordPress itself, without rewrite rules: the request reaches index.php like any other.
  *
- * In IRIOS Media, the push ad unit must point to this service worker ("/irios-sw.js", or with the site's subfolder).
+ * In IRIOS Media, the store's service worker must be this path ("/irios-sw.js", or with the site's subfolder).
  * The subscription itself is made by the IRIOS loader from the storefront JS, only with consent and at the moment set
  * in the settings.
  */

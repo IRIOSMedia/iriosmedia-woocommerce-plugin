@@ -318,29 +318,51 @@ the settings.
 
 ## Theme compatibility
 
-Events, identity and the sponsored product card rely on standard WooCommerce hooks and templates, so they work with any
-theme. Where ads are placed depends on the theme: the results grid, the live search dropdown and the automatic banner
-positions. If an ad cannot be placed, it is simply not shown and the store keeps working.
+Events, identity and the look of the sponsored product card use standard WooCommerce hooks and templates, so they work
+with any theme. What depends on the theme is **where** the ads go: the plugin has to find certain parts of your pages
+(the product grid, the live search dropdown, the sidebar, the product tabs…). It finds them by their CSS class, and
+out of the box it knows the classes of the themes in the table below. If it can't find a part, that ad simply isn't
+shown: the store keeps working as usual.
 
-A theme that names those parts differently can be adapted from the site itself, without waiting for a version of the
-plugin. In the theme's `functions.php` or a small plugin:
+If your theme names those parts differently, you have two ways to fix it, and you can combine them.
+
+### Option 1: tell the plugin what your theme calls each part
+
+This is done in code, without waiting for a new version of the plugin: a few lines in your theme's `functions.php` (or
+in a small plugin of your own) using the `irios_woocommerce_selectors` filter. You only give the parts that are
+different; the rest keep the default (`src/Selectors.php`).
 
 ```php
 add_filter( 'irios_woocommerce_selectors', function ( array $selectors ) {
-    $selectors['grid'] = '.my-results';   // where the results are
+    $selectors['grid'] = '.my-results';   // where the search results are
     $selectors['sidebar'] = '.my-aside';  // where the "Category: sidebar" placement goes
     return $selectors;
 } );
 ```
 
-The names are `grid`, `title`, `listingControls`, `productTabs`, `related`, `sidebar`, `notResults` and
-`liveDropdown`; what is not given keeps the tested default (`src/Selectors.php`).
+What each name is for:
 
-- `grid` and `title` (the results and the product names in them) and `notResults` (lists that are not results, such
-  as the mini cart): Sponsored Products in the results, which go only inside the grid. `liveDropdown`: the sponsored
-  row of the live search.
-- `listingControls`, `sidebar`, `productTabs` and `related`: only the automatic banner positions. Not needed when the
-  banners use the manual placement.
+- `grid` and `title`: Sponsored Products are inserted *inside* the search results, so the plugin needs to know where
+  the results grid is and how the product names in it are marked.
+- `liveDropdown`: the dropdown of your live search, where the sponsored row goes. `notResults`: links that sit in
+  that area but are not results, such as a header mini-cart, so they are not mistaken for them.
+- `listingControls`, `sidebar`, `productTabs` and `related`: only the automatic banner positions (*Category: bottom*,
+  which goes after the sorting and pagination, *Category: sidebar*, *Product: description* and *Product: related*).
+
+To find a selector, open the page in your browser, right-click the part and choose *Inspect*. Look for a class or an
+id that only that part has, for example `.my-results`. You can check it in the browser console with
+`document.querySelectorAll('.my-results')`: it should find exactly that part.
+
+### Option 2: place the banners by hand
+
+Display ads don't need the automatic positions. Set the placement's position to **Manual only** and put the
+`[irios_display tag="…"]` shortcode wherever you want it ([Display](#display)). Then `listingControls`, `sidebar`,
+`productTabs` and `related` are not needed.
+
+This doesn't work for Sponsored Products: they have to go inside the search results and the live search, so for them
+option 1 is the only one.
+
+### Tested themes
 
 <!-- compat:start -->
 Tested on 2026-10-21. ✅ works · ❌ fails · — not applicable, e.g. the theme has no live search.
@@ -366,8 +388,8 @@ Tested on 2026-10-21. ✅ works · ❌ fails · — not applicable, e.g. the the
 - With any other theme, the settings page shows an "unsupported theme" warning: contact IRIOS Media support.
 - **Page builders** (Elementor, WPBakery, Divi…): the manual placement works in any of their text or shortcode
   elements. If the builder replaces the WooCommerce category or product templates, the automatic positions and the
-  Sponsored Products grid may not be found: use manual placements for the banners, and adapt the selectors above for
-  Sponsored Products.
+  Sponsored Products grid may not be found: place the banners by hand (option 2 above) and give the plugin the
+  selectors of the results (option 1).
 
 <a id="caching"></a>
 ## Caching, optimization and CDN

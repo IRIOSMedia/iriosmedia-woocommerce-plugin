@@ -336,6 +336,12 @@ add_filter( 'irios_woocommerce_selectors', function ( array $selectors ) {
 The names are `grid`, `title`, `listingControls`, `productTabs`, `related`, `sidebar`, `notResults` and
 `liveDropdown`; what is not given keeps the tested default (`src/Selectors.php`).
 
+- `grid` and `title` (the results and the product names in them) and `notResults` (lists that are not results, such
+  as the mini cart): Sponsored Products in the results, which go only inside the grid. `liveDropdown`: the sponsored
+  row of the live search.
+- `listingControls`, `sidebar`, `productTabs` and `related`: only the automatic banner positions. Not needed when the
+  banners use the manual placement.
+
 <!-- compat:start -->
 Tested on 2026-10-21. ✅ works · ❌ fails · — not applicable, e.g. the theme has no live search.
 
@@ -360,7 +366,8 @@ Tested on 2026-10-21. ✅ works · ❌ fails · — not applicable, e.g. the the
 - With any other theme, the settings page shows an "unsupported theme" warning: contact IRIOS Media support.
 - **Page builders** (Elementor, WPBakery, Divi…): the manual placement works in any of their text or shortcode
   elements. If the builder replaces the WooCommerce category or product templates, the automatic positions and the
-  Sponsored Products grid may not be found: use manual placements, or adapt the selectors above.
+  Sponsored Products grid may not be found: use manual placements for the banners, and adapt the selectors above for
+  Sponsored Products.
 
 <a id="caching"></a>
 ## Caching, optimization and CDN

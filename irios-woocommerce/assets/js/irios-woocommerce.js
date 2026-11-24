@@ -42,7 +42,9 @@
     loaderPromise: null,
     recent: {},
     lastVariation: null,
-    flushWhenReady: false
+    flushWhenReady: false,
+    // The context request the <head> started (Assets::early_context), used by the first fetchContext() only
+    earlyContext: null
   };
   var page = window.iriosWooPage || { type: "page" };
   var DEBUG = function() {
@@ -167,6 +169,15 @@
     }
   }
   function fetchContext() {
+    var early = state.earlyContext;
+    state.earlyContext = null;
+    if (early) {
+      return early.then(function(body) {
+        return body ? fromBody(body) : fetchContext();
+      }, function() {
+        return fetchContext();
+      });
+    }
     var request = function(withNonce) {
       var headers = { Accept: "application/json" };
       if (withNonce && cfg.restNonce) {
@@ -178,14 +189,15 @@
       return r.status === 403 ? request(false) : r;
     }).then(function(r) {
       return r.ok ? r.json() : {};
-    }).then(function(body) {
-      return {
-        uids: Array.isArray(body.uids) ? body.uids : [],
-        events: Array.isArray(body.events) ? body.events : []
-      };
-    }).catch(function() {
+    }).then(fromBody).catch(function() {
       return { uids: [], events: [] };
     });
+  }
+  function fromBody(body) {
+    return {
+      uids: Array.isArray(body.uids) ? body.uids : [],
+      events: Array.isArray(body.events) ? body.events : []
+    };
   }
   function reportRevocation() {
     if (!cfg.revocationsUrl || typeof window.fetch !== "function") {
@@ -1678,6 +1690,7 @@
       }
     });
     if (hasConsent()) {
+      state.earlyContext = window.__iriosWooContext || null;
       start();
     } else {
       renderAds();

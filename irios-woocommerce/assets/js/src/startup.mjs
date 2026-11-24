@@ -1,4 +1,4 @@
-import { cfg, isConfigured } from './config.mjs';
+import { cfg, isConfigured, state } from './config.mjs';
 import { asesorConsent, hasConsent } from './consent.mjs';
 import { renderAds, start, stop } from './tracker.mjs';
 // Only for what it hooks on load: the listeners that watch the theme's search box
@@ -45,6 +45,8 @@ document.addEventListener( 'wp_listen_for_consent_change', function ( e ) {
 } );
 
 if ( hasConsent() ) {
+	// The consent was already known in the <head>, which asked the store for the context then (Assets::early_context)
+	state.earlyContext = window.__iriosWooContext || null;
 	start();
 } else {
 	// Without consent, contextual ads only: no tracker, no events, no identifiers

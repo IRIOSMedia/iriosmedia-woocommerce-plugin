@@ -36,6 +36,63 @@ final class Assets {
 		wp_localize_script( self::HANDLE, 'iriosWooPage', Events::page_data( $settings ) );
 	}
 
+	/**
+	 * Preconnect to the IRIOS Media script domain (wp_resource_hints): the connection is already open when the plugin
+	 * JS loads irios-tracker.js and irios-loader.js and requests the ads.
+	 *
+	 * @param array<int,mixed> $urls
+	 * @return array<int,mixed>
+	 */
+	public static function resource_hints( array $urls, string $relation ): array {
+		if ( 'preconnect' !== $relation || is_admin() ) {
+			return $urls;
+		}
+		$settings = Settings::load();
+		if ( ! $settings->is_configured() ) {
+			return $urls;
+		}
+		$urls[] = 'https://' . $settings->js_domain();
+		return $urls;
+	}
+
+	/**
+	 * In the <head>: asks the store for the shopper's uids and pending events (/wp-json/irios/v1/context) as soon as
+	 * the page starts loading, instead of when the deferred plugin JS runs at the end of the page; the JS then uses
+	 * that answer. Only when the consent is already known in the <head> (the same check as the JS): otherwise the JS
+	 * asks, as before. Visitor-independent, so a cached page is fine; the store checks the consent again.
+	 */
+	public static function early_context(): void {
+		$settings = Settings::load();
+		if ( ! $settings->is_configured() || is_admin() ) {
+			return;
+		}
+		echo self::early_context_html( $settings ); // phpcs:ignore
+	}
+
+	public static function early_context_html( Settings $settings ): string {
+		$config = wp_json_encode(
+			array(
+				'mode'     => $settings->consent_mode(),
+				'category' => Consent::CATEGORY,
+				'cookie'   => Consent::ASESOR_COOKIE,
+				'url'      => esc_url_raw( rest_url( 'irios/v1/context' ) ),
+				'nonce'    => wp_create_nonce( 'wp_rest' ),
+			)
+		);
+		$script = '(function(w,d,c){function y(){if(c.mode==="always"){return true;}if(c.mode==="asesor_cookies"){'
+			. 'var n=(w.cdpCookiesConfig&&w.cdpCookiesConfig.cookieName)||c.cookie,p=d.cookie?d.cookie.split("; "):[],i;'
+			. 'for(i=0;i<p.length;i++){if(p[i].indexOf(n+"=")===0){'
+			. 'try{return JSON.parse(decodeURIComponent(p[i].slice(n.length+1)))[c.category]===true;}catch(e){return false;}}}'
+			. 'return false;}'
+			. 'var t=typeof w.wp_consent_type!=="undefined"?w.wp_consent_type:w.wp_fallback_consent_type;'
+			. 'return !!t&&typeof w.wp_has_consent==="function"&&w.wp_has_consent(c.category);}'
+			. 'if(!w.fetch||!y()){return;}'
+			. 'w.__iriosWooContext=w.fetch(c.url,{credentials:"same-origin",cache:"no-store",headers:{Accept:"application/json","X-WP-Nonce":c.nonce}})'
+			. '.then(function(r){return r.ok?r.json():null;})["catch"](function(){return null;});'
+			. '})(window,document,' . $config . ');';
+		return '<script id="irios-early-context">' . $script . '</script>' . "\n";
+	}
+
 	/** Maximum time search results stay hidden while waiting for the ads (ms). */
 	public const ANTI_FLICKER_MS = 1500;
 

@@ -38,6 +38,11 @@ Changes in each version of IRIOS Media for WooCommerce. Download any version fro
 
 ### Changed
 
+- **Ads show sooner.** The page opens the connection to the IRIOS Media script domain in the `<head>` (preconnect), and
+  when the consent is already known there, the shopper's context (`/wp-json/irios/v1/context`) is asked from the
+  `<head>` as soon as the page starts loading, instead of when the plugin script runs at the end of the page; the
+  script then uses that answer. The ads of a logged-in customer, which wait for it, start sooner. If that request
+  fails (an expired nonce on a cached page…), the script asks again, as before.
 - **The admin is always in English**, whatever the store language, as in every IRIOS Media integration: the settings
   page, the admin notices and the plugin links are no longer translated (until now they showed in Spanish in a store
   in Spanish). Only what shoppers see is translated: the "About this ad" dialog and the default "Sponsored" label, in

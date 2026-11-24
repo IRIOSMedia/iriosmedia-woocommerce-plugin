@@ -36,6 +36,8 @@ final class Plugin {
 		Feed::register();
 		add_action( 'wp_enqueue_scripts', array( Assets::class, 'enqueue' ) );
 		add_action( 'wp_head', array( Assets::class, 'anti_flicker' ), 1 );
+		add_action( 'wp_head', array( Assets::class, 'early_context' ), 1 );
+		add_filter( 'wp_resource_hints', array( Assets::class, 'resource_hints' ), 10, 2 );
 		add_action( 'admin_notices', array( self::class, 'notice_configuration' ) );
 		add_action( 'admin_enqueue_scripts', array( Integration::class, 'enqueue_admin_assets' ) );
 	}

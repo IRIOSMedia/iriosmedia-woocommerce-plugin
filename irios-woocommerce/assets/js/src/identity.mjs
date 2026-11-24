@@ -35,6 +35,17 @@ export function sessionId() {
 }
 
 export function fetchContext() {
+	// The first answer: the request the <head> already started, if there is one; a failed one (an expired nonce on a
+	// cached page…) is asked again, as before
+	var early = state.earlyContext;
+	state.earlyContext = null;
+	if ( early ) {
+		return early.then( function ( body ) {
+			return body ? fromBody( body ) : fetchContext();
+		}, function () {
+			return fetchContext();
+		} );
+	}
 	var request = function ( withNonce ) {
 		var headers = { Accept: 'application/json' };
 		if ( withNonce && cfg.restNonce ) {
@@ -50,15 +61,17 @@ export function fetchContext() {
 		.then( function ( r ) {
 			return r.ok ? r.json() : {};
 		} )
-		.then( function ( body ) {
-			return {
-				uids: Array.isArray( body.uids ) ? body.uids : [],
-				events: Array.isArray( body.events ) ? body.events : [],
-			};
-		} )
+		.then( fromBody )
 		.catch( function () {
 			return { uids: [], events: [] };
 		} );
+}
+
+function fromBody( body ) {
+	return {
+		uids: Array.isArray( body.uids ) ? body.uids : [],
+		events: Array.isArray( body.events ) ? body.events : [],
+	};
 }
 
 /**

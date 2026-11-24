@@ -111,4 +111,36 @@ final class AssetsConfigTest extends WordPressTestCase {
 		$this->assertStringContainsString( 'setTimeout', $html, 'if the auction never answers, the results are shown anyway' );
 		$this->assertStringContainsString( 'opacity:0', $html );
 	}
+
+	public function test_it_preconnects_to_the_irios_script_domain(): void {
+		Functions\when( 'is_admin' )->justReturn( false );
+		$this->settings( array( 'js_domain' => 'shop.iriosmedia.online', 'store_id' => '33' ) );
+
+		$this->assertSame( array( 'https://fonts.test', 'https://shop.iriosmedia.online' ), Assets::resource_hints( array( 'https://fonts.test' ), 'preconnect' ) );
+		$this->assertSame( array(), Assets::resource_hints( array(), 'dns-prefetch' ), 'only the preconnect' );
+	}
+
+	public function test_no_preconnect_until_the_plugin_is_configured(): void {
+		Functions\when( 'is_admin' )->justReturn( false );
+		$this->settings( array() );
+
+		$this->assertSame( array(), Assets::resource_hints( array(), 'preconnect' ) );
+	}
+
+	public function test_the_head_asks_for_the_context_with_the_consent_mode_and_never_anything_of_the_visitor(): void {
+		Functions\when( 'wp_json_encode' )->alias( fn ( $data ) => json_encode( $data ) );
+		$html = Assets::early_context_html( new Settings( array( 'js_domain' => 'shop.iriosmedia.online', 'store_id' => '33', 'consent_mode' => 'asesor_cookies' ) ) );
+
+		$this->assertStringStartsWith( '<script id="irios-early-context">', $html );
+		$this->assertStringContainsString( '"mode":"asesor_cookies"', $html );
+		$this->assertStringContainsString( '"url":"https:\/\/shop.test\/wp-json\/irios\/v1\/context"', $html );
+		$this->assertStringContainsString( '"nonce":"un-nonce"', $html );
+		$this->assertStringContainsString( 'w.__iriosWooContext=w.fetch(', $html );
+		$this->assertStringNotContainsString( 'uids', $html, 'the answer is read in the browser, never printed' );
+	}
+
+	private function settings( array $values ): void {
+		Functions\when( 'get_option' )->justReturn( $values );
+		Settings::forget();
+	}
 }

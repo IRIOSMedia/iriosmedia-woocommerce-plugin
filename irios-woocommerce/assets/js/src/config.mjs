@@ -56,6 +56,8 @@ export var state = {
 	recent: {},
 	lastVariation: null,
 	flushWhenReady: false,
+	// The context request the <head> started (Assets::early_context), used by the first fetchContext() only
+	earlyContext: null,
 };
 export var page = window.iriosWooPage || { type: 'page' };
 

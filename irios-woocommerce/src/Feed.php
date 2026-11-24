@@ -9,8 +9,9 @@ namespace Irios\WooCommerce;
  *
  *   GET /wp-json/irios/v1/orders?status=processing,completed&modified_after=&created_after=&created_before=&page=&per_page=
  *   GET /wp-json/irios/v1/orders/<id>
- *   GET /wp-json/irios/v1/customers?page=&per_page=   (registered customers with an order placed with consent)
+ *   GET /wp-json/irios/v1/customers?updated_since=&page=&per_page=   (registered customers whose last answer is yes)
  *   GET /wp-json/irios/v1/customers/<id>
+ *   GET /wp-json/irios/v1/revocations?revoked_after=&after_id=&page=&per_page=   (consent withdrawals, Revocations)
  *
  * Orders with a product of a sensitive category are never returned (Sensitive): the purchase does not reach IRIOS Media.
  *
@@ -35,8 +36,14 @@ final class Feed {
 			return true;
 		}
 		$uri = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
-		return 1 === preg_match( '#/' . preg_quote( self::NAMESPACE, '#' ) . '/(orders|customers)(/|\?|$)#', $uri )
-			|| 1 === preg_match( '#[?&]rest_route=/' . preg_quote( self::NAMESPACE, '#' ) . '/(orders|customers)#', rawurldecode( $uri ) );
+		// The withdrawals are read with an API key, but sent with POST by the storefront (Rest), with the visitor's cookies
+		$routes = 'GET' === self::method() ? 'orders|customers|revocations' : 'orders|customers';
+		return 1 === preg_match( '#/' . preg_quote( self::NAMESPACE, '#' ) . '/(' . $routes . ')(/|\?|$)#', $uri )
+			|| 1 === preg_match( '#[?&]rest_route=/' . preg_quote( self::NAMESPACE, '#' ) . '/(' . $routes . ')(/|&|$)#', rawurldecode( $uri ) );
+	}
+
+	private static function method(): string {
+		return isset( $_SERVER['REQUEST_METHOD'] ) ? strtoupper( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) ) : 'GET';
 	}
 
 	public static function routes(): void {
@@ -87,7 +94,7 @@ final class Feed {
 				'methods'             => 'GET',
 				'callback'            => array( self::class, 'customers' ),
 				'permission_callback' => array( self::class, 'allowed' ),
-				'args'                => $page,
+				'args'                => $page + array( 'updated_since' => array( 'type' => 'string' ) ),
 			)
 		);
 		register_rest_route(
@@ -97,6 +104,24 @@ final class Feed {
 				'methods'             => 'GET',
 				'callback'            => array( self::class, 'customer' ),
 				'permission_callback' => array( self::class, 'allowed' ),
+			)
+		);
+		// Same path as the storefront's POST (Rest): WordPress keeps both, each with its own method and permission
+		register_rest_route(
+			self::NAMESPACE,
+			'/revocations',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( self::class, 'revocations' ),
+				'permission_callback' => array( self::class, 'allowed' ),
+				'args'                => $page + array(
+					'revoked_after' => array( 'type' => 'string' ),
+					'after_id'      => array(
+						'type'    => 'integer',
+						'default' => 0,
+						'minimum' => 0,
+					),
+				),
 			)
 		);
 	}
@@ -147,12 +172,18 @@ final class Feed {
 		return new \WP_REST_Response( self::order_data( $order ) );
 	}
 
+	/**
+	 * Registered customers whose last answer is yes, by ID. `updated_since` (ISO 8601, GMT without a zone) keeps only
+	 * those whose answer changed to yes after it (Consent::USER_META_AT) or, without an answer of their own, whose
+	 * most recent paid orders changed after it.
+	 */
 	public static function customers( \WP_REST_Request $request ): \WP_REST_Response {
 		$per_page = (int) $request['per_page'];
 		$page     = (int) $request['page'];
-		$total    = self::consented_customer_total();
+		$since    = self::timestamp( $request['updated_since'] );
+		$total    = self::consented_customer_total( $since );
 		$data     = array();
-		foreach ( self::consented_customer_ids( $page, $per_page ) as $id ) {
+		foreach ( self::consented_customer_ids( $page, $per_page, $since ) as $id ) {
 			$customer = self::customer_data( $id );
 			if ( null !== $customer ) {
 				$data[] = $customer;
@@ -163,11 +194,21 @@ final class Feed {
 
 	public static function customer( \WP_REST_Request $request ) {
 		$id       = (int) $request['id'];
-		$customer = self::has_consented_order( $id ) ? self::customer_data( $id ) : null;
+		$customer = self::consenting_customer( $id ) ? self::customer_data( $id ) : null;
 		if ( null === $customer ) {
-			return new \WP_Error( 'irios_not_found', 'Customer not found or without an order placed with consent.', array( 'status' => 404 ) );
+			return new \WP_Error( 'irios_not_found', 'Customer not found or whose last answer is not consent.', array( 'status' => 404 ) );
 		}
 		return new \WP_REST_Response( $customer );
+	}
+
+	/**
+	 * Consent withdrawals (Revocations), oldest first: `[{id, revoked_at, uids: {crm?, email_sha256?, phone_sha256?,
+	 * browser_id?}}]`. `revoked_after` (ISO 8601, GMT without a zone) and `after_id` keep only the later ones.
+	 */
+	public static function revocations( \WP_REST_Request $request ): \WP_REST_Response {
+		$per_page        = (int) $request['per_page'];
+		list( $data, $total ) = Revocations::page( (int) $request['page'], $per_page, self::timestamp( $request['revoked_after'] ), (int) $request['after_id'] );
+		return self::page( $data, $total, (int) ceil( $total / $per_page ) );
 	}
 
 	/**
@@ -251,59 +292,104 @@ final class Feed {
 	}
 
 	/**
-	 * Registered customers with at least one order placed with consent, by ID, one page at a time.
+	 * Registered customers whose last answer is consent, by ID, one page at a time.
 	 *
 	 * Straight SQL: loading the orders to read their customer would mean every order of the store in memory on each
 	 * call. Works with both order storages (HPOS and the older posts table).
 	 *
 	 * @return int[]
 	 */
-	private static function consented_customer_ids( int $page, int $per_page ): array {
+	private static function consented_customer_ids( int $page, int $per_page, ?int $since ): array {
 		global $wpdb;
-		$offset = max( 0, ( $page - 1 ) * $per_page );
-		$sql    = self::consented_customers_sql( 'DISTINCT customer' ) . ' ORDER BY customer ASC LIMIT %d OFFSET %d';
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery
-		$ids = $wpdb->get_col( $wpdb->prepare( $sql, Orders::CONSENT_META, 'yes', $per_page, $offset ) );
+		list( $sql, $args ) = self::consenting_customers_sql( 'DISTINCT customer', 0, $since );
+		$sql               .= ' ORDER BY customer ASC LIMIT %d OFFSET %d';
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare,WordPress.DB.DirectDatabaseQuery
+		$ids = $wpdb->get_col( $wpdb->prepare( $sql, ...array_merge( $args, array( $per_page, max( 0, ( $page - 1 ) * $per_page ) ) ) ) );
 		return array_map( 'intval', (array) $ids );
 	}
 
-	/** How many registered customers have an order placed with consent. */
-	private static function consented_customer_total(): int {
+	/** How many registered customers have consent as their last answer. */
+	private static function consented_customer_total( ?int $since ): int {
 		global $wpdb;
-		$sql = 'SELECT COUNT(*) FROM (' . self::consented_customers_sql( 'DISTINCT customer' ) . ') AS irios_customers';
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery
-		return (int) $wpdb->get_var( $wpdb->prepare( $sql, Orders::CONSENT_META, 'yes' ) );
+		list( $sql, $args ) = self::consenting_customers_sql( 'DISTINCT customer', 0, $since );
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare,WordPress.DB.DirectDatabaseQuery
+		return (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM (' . $sql . ') AS irios_customers', ...$args ) );
 	}
 
-	/** Has this customer an order placed with consent? One row, without listing them all. */
-	private static function has_consented_order( int $customer_id ): bool {
+	/** Is this customer's last answer consent? Only their own answer and orders are read. */
+	private static function consenting_customer( int $customer_id ): bool {
 		global $wpdb;
 		if ( $customer_id <= 0 ) {
 			return false;
 		}
-		$sql = self::consented_customers_sql( 'customer' ) . ' AND customer = %d LIMIT 1';
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery
-		return null !== $wpdb->get_var( $wpdb->prepare( $sql, Orders::CONSENT_META, 'yes', $customer_id ) );
+		list( $sql, $args ) = self::consenting_customers_sql( 'customer', $customer_id );
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare,WordPress.DB.DirectDatabaseQuery
+		return null !== $wpdb->get_var( $wpdb->prepare( $sql . ' LIMIT 1', ...$args ) );
 	}
 
 	/**
-	 * SELECT over the orders placed with consent by a registered customer, with the consent meta key and value as the
-	 * first two placeholders. The caller adds its own ORDER BY, LIMIT or condition on `customer`.
+	 * SELECT over the registered customers whose last answer is consent, with its placeholders' values. The caller adds
+	 * its own ORDER BY or LIMIT.
+	 *
+	 * Two kinds of customer, never both at once:
+	 *
+	 * - with an answer of their own (Consent::USER_META: seen with consent, withdrawn, or given at checkout): listed
+	 *   when it is yes, with or without an order. Changed at: when that answer was last written (USER_META_AT).
+	 * - without one (not seen since it is kept): the answer of their most recent paid order, found in a single pass
+	 *   over the orders, grouped by customer (the greatest "date|id|answer" is the latest order's). Changed at: the
+	 *   latest change to any of their paid orders.
+	 *
+	 * @param int      $only  A single customer, or 0 for all of them.
+	 * @param int|null $since Only those changed after this moment (Unix time), or null for all of them.
+	 * @return array{0: string, 1: array<int,string|int>}
 	 */
-	private static function consented_customers_sql( string $select ): string {
+	private static function consenting_customers_sql( string $select, int $only = 0, ?int $since = null ): array {
 		global $wpdb;
 		$statuses = "'" . implode( "','", array_map( static fn( string $s ): string => 'wc-' . $s, self::PAID ) ) . "'";
 		if ( self::hpos() ) {
-			return "SELECT {$select} FROM (SELECT o.customer_id AS customer FROM {$wpdb->prefix}wc_orders o"
-				. " INNER JOIN {$wpdb->prefix}wc_orders_meta m ON m.order_id = o.id"
-				. " WHERE o.type = 'shop_order' AND o.status IN ({$statuses}) AND o.customer_id > 0"
-				. ' AND m.meta_key = %s AND m.meta_value = %s) AS irios_consented WHERE 1 = 1';
+			$customer = 'o.customer_id';
+			$orders   = "{$wpdb->prefix}wc_orders o"
+				. " LEFT JOIN {$wpdb->prefix}wc_orders_meta m ON m.order_id = o.id AND m.meta_key = %s"
+				. " WHERE o.type = 'shop_order' AND o.status IN ({$statuses}) AND o.customer_id > 0";
+			$latest   = "CONCAT(COALESCE(o.date_created_gmt, ''), '|', LPAD(o.id, 20, '0'), '|', COALESCE(m.meta_value, ''))";
+			$modified = 'COALESCE(o.date_updated_gmt, o.date_created_gmt)';
+		} else {
+			$customer = 'CAST(u.meta_value AS UNSIGNED)';
+			$orders   = "{$wpdb->posts} p"
+				. " INNER JOIN {$wpdb->postmeta} u ON u.post_id = p.ID AND u.meta_key = '_customer_user'"
+				. " LEFT JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = %s"
+				. " WHERE p.post_type = 'shop_order' AND p.post_status IN ({$statuses}) AND CAST(u.meta_value AS UNSIGNED) > 0";
+			$latest   = "CONCAT(p.post_date_gmt, '|', LPAD(p.ID, 20, '0'), '|', COALESCE(m.meta_value, ''))";
+			$modified = 'p.post_modified_gmt';
 		}
-		return "SELECT {$select} FROM (SELECT CAST(u.meta_value AS UNSIGNED) AS customer FROM {$wpdb->posts} p"
-			. " INNER JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = %s AND m.meta_value = %s"
-			. " INNER JOIN {$wpdb->postmeta} u ON u.post_id = p.ID AND u.meta_key = '_customer_user'"
-			. " WHERE p.post_type = 'shop_order' AND p.post_status IN ({$statuses})"
-			. ' AND CAST(u.meta_value AS UNSIGNED) > 0) AS irios_consented WHERE 1 = 1';
+		// Customers with an answer of their own
+		$own  = "SELECT a.user_id AS customer, t.meta_value AS changed FROM {$wpdb->usermeta} a"
+			. " INNER JOIN {$wpdb->users} w ON w.ID = a.user_id"
+			. " LEFT JOIN {$wpdb->usermeta} t ON t.user_id = a.user_id AND t.meta_key = %s"
+			. ' WHERE a.meta_key = %s AND a.meta_value = %s';
+		$args = array( Consent::USER_META_AT, Consent::USER_META, 'yes' );
+		if ( $only > 0 ) {
+			$own   .= ' AND a.user_id = %d';
+			$args[] = $only;
+		}
+		// Customers without one: their most recent paid order's
+		$args[] = Orders::CONSENT_META;
+		if ( $only > 0 ) {
+			$orders .= " AND {$customer} = %d";
+			$args[]  = $only;
+		}
+		$args[] = Consent::USER_META;
+		$args[] = 'yes';
+		$by_order = 'SELECT c.customer, c.changed FROM'
+			. " (SELECT {$customer} AS customer, MAX({$latest}) AS latest, MAX({$modified}) AS changed FROM {$orders} GROUP BY {$customer}) AS c"
+			. " LEFT JOIN {$wpdb->usermeta} n ON n.user_id = c.customer AND n.meta_key = %s"
+			. " WHERE n.umeta_id IS NULL AND SUBSTRING_INDEX(c.latest, '|', -1) = %s";
+		$sql = "SELECT {$select} FROM ({$own} UNION ALL {$by_order}) AS irios_consented";
+		if ( null !== $since ) {
+			$sql   .= ' WHERE irios_consented.changed > %s';
+			$args[] = gmdate( 'Y-m-d H:i:s', $since );
+		}
+		return array( $sql, $args );
 	}
 
 	/** Does the store keep its orders in WooCommerce's own tables (HPOS) instead of the posts table? */

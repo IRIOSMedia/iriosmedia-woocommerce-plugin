@@ -69,6 +69,15 @@
         },
         {
             "files": [
+                "irios-woocommerce/assets/js/admin-categories.js"
+            ],
+            "parserOptions": {
+                "ecmaVersion": 5,
+                "sourceType": "script"
+            }
+        },
+        {
+            "files": [
                 "irios-woocommerce/tests/js/**",
                 "e2e/**",
                 "compat/**",

@@ -16,25 +16,42 @@ final class Settings {
 	public const CONSENT_ASESOR_COOKIES = 'asesor_cookies';
 
 	/**
-	 * Automatic positions of a Display placement: the common catalog of every IRIOS Media integration. Any placement
-	 * can also be placed by hand with the shortcode, whatever its position.
+	 * Automatic positions of a Display placement: the common catalog of every IRIOS Media integration (WooCommerce,
+	 * Magento, Salesforce), in the order the settings screen offers them. Any placement can also be placed by hand with
+	 * the shortcode, whatever its position. The home page has no automatic position: every home page is different, so
+	 * its placements (home-main, home-secondary) are always placed by hand.
 	 */
 	public const POSITION_NONE                       = '';
-	public const POSITION_CATEGORY_SIDEBAR           = 'category_sidebar';
 	public const POSITION_CATEGORY_BEFORE_PRODUCTS   = 'category_before_products';
 	public const POSITION_CATEGORY_IN_GRID           = 'category_in_grid';
 	public const POSITION_CATEGORY_AFTER_PRODUCTS    = 'category_after_products';
+	public const POSITION_CATEGORY_SIDEBAR           = 'category_sidebar';
 	public const POSITION_PRODUCT_BEFORE_DESCRIPTION = 'product_before_description';
 	public const POSITION_PRODUCT_BEFORE_RELATED     = 'product_before_related';
 	public const POSITIONS                           = array(
 		self::POSITION_NONE,
-		self::POSITION_CATEGORY_SIDEBAR,
 		self::POSITION_CATEGORY_BEFORE_PRODUCTS,
 		self::POSITION_CATEGORY_IN_GRID,
 		self::POSITION_CATEGORY_AFTER_PRODUCTS,
+		self::POSITION_CATEGORY_SIDEBAR,
 		self::POSITION_PRODUCT_BEFORE_DESCRIPTION,
 		self::POSITION_PRODUCT_BEFORE_RELATED,
 	);
+	/**
+	 * Name of the IRIOS ad unit of each automatic position, the same in every integration: the ad units are created in
+	 * IRIOS Media with these names (and "-mobile" at the end for the mobile one), and they are also the tag suggested for
+	 * the row (with "-mobile" for a Mobile row).
+	 */
+	public const AD_UNIT_NAMES      = array(
+		self::POSITION_CATEGORY_BEFORE_PRODUCTS   => 'plp-top',
+		self::POSITION_CATEGORY_IN_GRID           => 'plp-in-grid',
+		self::POSITION_CATEGORY_AFTER_PRODUCTS    => 'plp-bottom',
+		self::POSITION_CATEGORY_SIDEBAR           => 'plp-sidebar',
+		self::POSITION_PRODUCT_BEFORE_DESCRIPTION => 'pdp-main',
+		self::POSITION_PRODUCT_BEFORE_RELATED     => 'pdp-secondary',
+	);
+	/** Home page positions of earlier versions, now read as "Manual only" (the placement keeps working by its tag). */
+	public const FORMER_HOME_POSITIONS = array( 'home_main', 'home_secondary' );
 	public const CATEGORY_POSITIONS = array( self::POSITION_CATEGORY_SIDEBAR, self::POSITION_CATEGORY_BEFORE_PRODUCTS, self::POSITION_CATEGORY_IN_GRID, self::POSITION_CATEGORY_AFTER_PRODUCTS );
 	public const PRODUCT_POSITIONS  = array( self::POSITION_PRODUCT_BEFORE_DESCRIPTION, self::POSITION_PRODUCT_BEFORE_RELATED );
 
@@ -216,6 +233,7 @@ final class Settings {
 			$id   = trim( (string) ( $row['id'] ?? '' ) );
 			$auth = trim( (string) ( $row['auth'] ?? '' ) );
 			$pos    = trim( (string) ( $row['position'] ?? '' ) );
+			$pos    = in_array( $pos, self::FORMER_HOME_POSITIONS, true ) ? self::POSITION_NONE : $pos;
 			$format = trim( (string) ( $row['format'] ?? '' ) );
 			$format = '' === $format ? 'image' : $format;
 			$device = trim( (string) ( $row['device'] ?? '' ) );
@@ -225,24 +243,21 @@ final class Settings {
 			}
 			if ( 1 !== preg_match( '/^[a-z0-9_-]{1,40}$/', $tag ) ) {
 				$errors[] = sprintf(
-					/* translators: %s: banner tag */
-					__( 'Invalid tag "%s": use lowercase letters, numbers, - or _', 'irios-woocommerce' ),
+					'Invalid tag "%s": use lowercase letters, numbers, - or _',
 					$tag
 				);
 				continue;
 			}
 			if ( isset( $banners[ $tag ] ) ) {
 				$errors[] = sprintf(
-					/* translators: %s: banner tag */
-					__( 'Duplicate tag "%s"', 'irios-woocommerce' ),
+					'Duplicate tag "%s"',
 					$tag
 				);
 				continue;
 			}
 			if ( ! isset( self::FORMAT_AD_UNIT_TYPE[ $format ] ) ) {
 				$errors[] = sprintf(
-					/* translators: 1: placement tag, 2: format */
-					__( 'Placement "%1$s": unknown format "%2$s"', 'irios-woocommerce' ),
+					'Placement "%1$s": unknown format "%2$s"',
 					$tag,
 					$format
 				);
@@ -250,8 +265,7 @@ final class Settings {
 			}
 			if ( ! in_array( $device, self::DEVICES, true ) ) {
 				$errors[] = sprintf(
-					/* translators: 1: placement tag, 2: device */
-					__( 'Placement "%1$s": unknown device "%2$s"', 'irios-woocommerce' ),
+					'Placement "%1$s": unknown device "%2$s"',
 					$tag,
 					$device
 				);
@@ -259,16 +273,14 @@ final class Settings {
 			}
 			if ( ! self::is_positive_int( $id ) || '' === $auth ) {
 				$errors[] = sprintf(
-					/* translators: %s: banner tag */
-					__( 'Banner "%s": the numeric ad unit id or its auth is missing', 'irios-woocommerce' ),
+					'Banner "%s": the numeric ad unit id or its auth is missing',
 					$tag
 				);
 				continue;
 			}
 			if ( ! in_array( $pos, self::POSITIONS, true ) ) {
 				$errors[] = sprintf(
-					/* translators: 1: banner tag, 2: position */
-					__( 'Banner "%1$s": unknown position "%2$s"', 'irios-woocommerce' ),
+					'Banner "%1$s": unknown position "%2$s"',
 					$tag,
 					$pos
 				);
@@ -277,8 +289,7 @@ final class Settings {
 			if ( self::POSITION_CATEGORY_SIDEBAR === $pos && 'desktop' !== $device ) {
 				if ( $for_save || 'mobile' === $device ) {
 					$errors[] = sprintf(
-						/* translators: %s: banner tag */
-						__( 'Placement "%s": the category sidebar is only shown on desktop, set its device to Desktop', 'irios-woocommerce' ),
+						'Placement "%s": the category sidebar is only shown on desktop, set its device to Desktop',
 						$tag
 					);
 					continue;
@@ -414,8 +425,7 @@ final class Settings {
 			}
 			if ( ! self::is_positive_int( $position ) || (int) $position > self::MAX_SLOTS ) {
 				$errors[] = sprintf(
-					/* translators: 1: position entered, 2: highest position */
-					__( 'Invalid position "%1$s": a number from 1 to %2$d', 'irios-woocommerce' ),
+					'Invalid position "%1$s": a number from 1 to %2$d',
 					$position,
 					self::MAX_SLOTS
 				);
@@ -423,16 +433,14 @@ final class Settings {
 			}
 			if ( isset( $slots[ (int) $position ] ) ) {
 				$errors[] = sprintf(
-					/* translators: %d: position */
-					__( 'Duplicate position %d', 'irios-woocommerce' ),
+					'Duplicate position %d',
 					(int) $position
 				);
 				continue;
 			}
 			if ( ! self::is_positive_int( $id ) || '' === $auth ) {
 				$errors[] = sprintf(
-					/* translators: %d: position */
-					__( 'Position %d: the numeric ad unit id or its auth is missing', 'irios-woocommerce' ),
+					'Position %d: the numeric ad unit id or its auth is missing',
 					(int) $position
 				);
 				continue;
@@ -455,6 +463,11 @@ final class Settings {
 		if ( '' !== $this->values['sponsored_label'] ) {
 			return $this->values['sponsored_label'];
 		}
+		return self::default_sponsored_label();
+	}
+
+	/** Default ad label in the store's language: shown to shoppers, so it stays translatable (the admin is English). */
+	public static function default_sponsored_label(): string {
 		return function_exists( '__' ) ? __( 'Sponsored', 'irios-woocommerce' ) : 'Sponsored';
 	}
 
@@ -520,8 +533,7 @@ final class Settings {
 			}
 			if ( ! self::is_positive_int( $id ) || ! in_array( (int) $id, $existing, true ) ) {
 				$errors[] = sprintf(
-					/* translators: %s: category id */
-					__( 'Sensitive categories: there is no product category with id "%s"', 'irios-woocommerce' ),
+					'Sensitive categories: there is no product category with id "%s"',
 					$id
 				);
 				continue;
@@ -556,9 +568,36 @@ final class Settings {
 		return self::is_valid_language( $tag ) ? $tag : null;
 	}
 
+	/**
+	 * Language of every IRIOS auction (banners, video and Sponsored Products): the locale of the page being viewed
+	 * (with WPML or Polylang, that of the store version the visitor is on), then the site language set in Settings >
+	 * General. Each one as language and region (es-ES) or, if the region cannot be used, the language alone (es).
+	 * Null only if neither gives a usable language: then no ads are requested (irios-loader.js rejects an auction
+	 * without a valid language).
+	 */
+	public static function store_language(): ?string {
+		$locales = array( function_exists( 'determine_locale' ) ? (string) determine_locale() : '' );
+		if ( function_exists( 'get_locale' ) ) {
+			$locales[] = (string) get_locale();
+		}
+		foreach ( $locales as $locale ) {
+			$tag = self::bcp47_language( $locale ) ?? self::locale_language( $locale );
+			if ( null !== $tag ) {
+				return $tag;
+			}
+		}
+		return null;
+	}
+
+	/** Language part of a WordPress locale (es_419 → es); null if it is not a language. */
+	private static function locale_language( string $wp_locale ): ?string {
+		$language = strtolower( explode( '_', trim( $wp_locale ) )[0] );
+		return self::is_valid_language( $language ) ? $language : null;
+	}
+
 	public static function is_valid_language( string $value ): bool {
-		// Same format that irios-loader.js validates.
-		return 1 === preg_match( '/^[a-z]{2,3}(-[A-Z]{2,3}(-[a-zA-Z0-9]+)?)?$/', $value );
+		// Same format that irios-loader.js validates: language, optionally with its region (es, es-ES).
+		return 1 === preg_match( '/^[a-z]{2,3}(-[A-Z]{2,3})?$/', $value );
 	}
 
 	public static function is_positive_int( string $value ): bool {

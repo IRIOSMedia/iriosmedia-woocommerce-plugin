@@ -6,7 +6,8 @@ namespace Irios\WooCommerce;
  * At checkout, stores on the order whether there was IRIOS Media consent (`_irios_consent`: yes/no) and, only with
  * consent, the browser's IRIOS identifier (`irs1P` cookie, `_irios_uid`), so the sync service sends the purchase (only
  * with consent) and IRIOS Media can attribute it to its ads and events, even if the buyer is anonymous. Order meta is
- * WooCommerce's own extension mechanism (also with HPOS): no table is altered.
+ * WooCommerce's own extension mechanism (also with HPOS): no table is altered. The answer also becomes the registered
+ * customer's last answer (Consent::remember).
  */
 final class Orders {
 
@@ -29,6 +30,9 @@ final class Orders {
 		}
 		$granted = Consent::granted( $settings );
 		$order->update_meta_data( self::CONSENT_META, $granted ? 'yes' : 'no' );
+		// A registered customer's last answer is the one given here (Consent::USER_META): it decides whether they are
+		// in the customers feed, whatever their earlier orders said
+		Consent::remember( (int) $order->get_customer_id(), $granted );
 		$cookie = isset( $_COOKIE[ Identity::COOKIE ] ) ? sanitize_text_field( wp_unslash( $_COOKIE[ Identity::COOKIE ] ) ) : null;
 		$uid    = $granted ? Identity::browser_uid( $cookie ) : null;
 		if ( null !== $uid ) {

@@ -13,6 +13,8 @@ final class Plugin {
 		// Saving the settings in this same request: what was read is no longer what is stored
 		add_action( 'update_option_' . Settings::OPTION, array( Settings::class, 'forget' ) );
 		add_action( 'delete_option_' . Settings::OPTION, array( Settings::class, 'forget' ) );
+		// Daily purge of old consent withdrawals: they are deleted on time even while WooCommerce is off
+		Revocations::register();
 		if ( ! class_exists( 'WooCommerce' ) ) {
 			add_action( 'admin_notices', array( self::class, 'notice_missing_woocommerce' ) );
 			return;
@@ -25,6 +27,7 @@ final class Plugin {
 				return $integrations;
 			}
 		);
+		Revocations::maybe_upgrade(); // an update does not run the activation
 		add_action( 'rest_api_init', array( Rest::class, 'register' ) );
 		Events::register();
 		Banners::register();
@@ -34,6 +37,7 @@ final class Plugin {
 		add_action( 'wp_enqueue_scripts', array( Assets::class, 'enqueue' ) );
 		add_action( 'wp_head', array( Assets::class, 'anti_flicker' ), 1 );
 		add_action( 'admin_notices', array( self::class, 'notice_configuration' ) );
+		add_action( 'admin_enqueue_scripts', array( Integration::class, 'enqueue_admin_assets' ) );
 	}
 
 	private static function asesor_cookies_active(): bool {
@@ -46,7 +50,7 @@ final class Plugin {
 	}
 
 	public static function notice_missing_woocommerce(): void {
-		echo '<div class="notice notice-error"><p>' . esc_html__( 'IRIOS Media for WooCommerce requires WooCommerce to be active.', 'irios-woocommerce' ) . '</p></div>';
+		echo '<div class="notice notice-error"><p>' . esc_html( 'IRIOS Media for WooCommerce requires WooCommerce to be active.' ) . '</p></div>';
 	}
 
 	public static function notice_configuration(): void {
@@ -61,24 +65,24 @@ final class Plugin {
 		if ( ! $settings->is_configured() ) {
 			printf(
 				'<div class="notice notice-warning"><p>%s <a href="%s">%s</a></p></div>',
-				esc_html__( 'IRIOS Media for WooCommerce is not configured: the IRIOS Media domain or the Store ID is missing, so nothing is sent to IRIOS Media.', 'irios-woocommerce' ),
+				esc_html( 'IRIOS Media for WooCommerce is not configured: the IRIOS Media domain or the Store ID is missing, so nothing is sent to IRIOS Media.' ),
 				esc_url( $url ),
-				esc_html__( 'Configure', 'irios-woocommerce' )
+				esc_html( 'Configure' )
 			);
 		} elseif ( Settings::CONSENT_ASESOR_COOKIES === $settings->consent_mode() && ! self::asesor_cookies_active() ) {
 			printf(
 				'<div class="notice notice-warning"><p>%s</p></div>',
-				esc_html__( 'IRIOS Media for WooCommerce uses the "Asesor de Cookies RGPD" banner, but it is not active: without it there is no consent, so only contextual ads are shown and no events are sent.', 'irios-woocommerce' )
+				esc_html( 'IRIOS Media for WooCommerce uses the "Asesor de Cookies RGPD" banner, but it is not active: without it there is no consent, so only contextual ads are shown and no events are sent.' )
 			);
 		} elseif ( Settings::CONSENT_WP_CONSENT_API === $settings->consent_mode() && ! Consent::api_available() ) {
 			printf(
 				'<div class="notice notice-warning"><p>%s</p></div>',
-				esc_html__( 'IRIOS Media for WooCommerce uses the WP Consent API, but it is not installed: without it there is no consent, so only contextual ads are shown and no events are sent. Install the "WP Consent API" plugin (and a compatible cookie banner) or change the consent mode.', 'irios-woocommerce' )
+				esc_html( 'IRIOS Media for WooCommerce uses the WP Consent API, but it is not installed: without it there is no consent, so only contextual ads are shown and no events are sent. Install the "WP Consent API" plugin (and a compatible cookie banner) or change the consent mode.' )
 			);
 		} elseif ( Settings::CONSENT_WP_CONSENT_API === $settings->consent_mode() && ! Consent::banner_registered() ) {
 			printf(
 				'<div class="notice notice-warning"><p>%s</p></div>',
-				esc_html__( 'IRIOS Media for WooCommerce: the WP Consent API is installed, but no cookie banner uses it. Without a banner there is no consent, so only contextual ads are shown and no events are sent. Activate a compatible banner (Complianz, CookieYes, Cookiebot…) or change the consent mode.', 'irios-woocommerce' )
+				esc_html( 'IRIOS Media for WooCommerce: the WP Consent API is installed, but no cookie banner uses it. Without a banner there is no consent, so only contextual ads are shown and no events are sent. Activate a compatible banner (Complianz, CookieYes, Cookiebot…) or change the consent mode.' )
 			);
 		}
 	}

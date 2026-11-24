@@ -8,9 +8,10 @@ namespace Irios\WooCommerce;
  * that the JS fills with a single auction for all the placements of the page (with consent, the visitor's uids, and
  * the page type as context). With Display disabled, or the plugin not configured, the shortcode renders nothing.
  *
- * Placements with an automatic position (category: sidebar, inside the grid, after the products; product page: before
- * the description, before the related products) are printed hidden in the footer and the JS moves them into place,
- * looking for the theme's sidebar, grid, tabs or related products (themes do not always use the WooCommerce hooks).
+ * Placements with an automatic position (front page: start and end of the main content; category: sidebar, inside the
+ * grid, after the products; product page: before the description, before the related products) are printed hidden in
+ * the footer and the JS moves them into place, looking for the theme's main content, sidebar, grid, tabs or related
+ * products (themes do not always use the WooCommerce hooks).
  */
 final class Banners {
 
@@ -23,7 +24,7 @@ final class Banners {
 		add_action( 'wp_footer', array( self::class, 'positioned' ) );
 	}
 
-	/** Slots for the auto-placed placements on this page (category or product page). */
+	/** Slots for the auto-placed placements on this page (front, category or product page). */
 	public static function positioned(): void {
 		$settings = Settings::load();
 		if ( ! $settings->is_configured() || ! $settings->banners_enabled() ) {
@@ -36,8 +37,16 @@ final class Banners {
 		}
 	}
 
-	/** @return string[] */
+	/**
+	 * Automatic positions of this page. The front page has none, also when it is the shop page (whose listing is not a
+	 * category one): its placements are placed by hand with the shortcode.
+	 *
+	 * @return string[]
+	 */
 	private static function page_positions(): array {
+		if ( is_front_page() ) {
+			return array();
+		}
 		if ( function_exists( 'is_product_category' ) && is_product_category() ) {
 			return Settings::CATEGORY_POSITIONS;
 		}

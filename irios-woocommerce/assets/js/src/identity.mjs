@@ -61,3 +61,34 @@ export function fetchContext() {
 		} );
 }
 
+/**
+ * Consent withdrawn: tells the store, so IRIOS Media erases what it holds about this browser and, if logged in, the
+ * customer (Revocations.php). The store takes the browser from the irs1P cookie the request itself carries, never
+ * from the body, so this must be sent before that cookie is removed. keepalive: it still arrives if the visitor leaves
+ * the page. Resolves when the request is over, whatever the answer.
+ */
+export function reportRevocation() {
+	if ( ! cfg.revocationsUrl || typeof window.fetch !== 'function' ) {
+		return Promise.resolve();
+	}
+	var request = function ( withNonce ) {
+		var headers = { Accept: 'application/json' };
+		if ( withNonce && cfg.restNonce ) {
+			headers[ 'X-WP-Nonce' ] = cfg.restNonce;
+		}
+		return window.fetch( cfg.revocationsUrl, {
+			method: 'POST',
+			credentials: 'same-origin',
+			cache: 'no-store',
+			keepalive: true,
+			headers: headers,
+		} );
+	};
+	var done = function () {};
+	// An expired nonce (cached page) returns 403: retry without it, so at least the browser is reported
+	return request( true )
+		.then( function ( r ) {
+			return r.status === 403 ? request( false ) : r;
+		} )
+		.then( done, done );
+}

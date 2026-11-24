@@ -10,10 +10,28 @@
   function isConfigured() {
     return !!(window.iriosWooConfig && cfg.jsDomain && cfg.storeId);
   }
+  var LANGUAGE_FORMAT = /^[a-z]{2,3}(-[A-Z]{2,3})?$/;
+  function normalizeLanguage(value) {
+    if (typeof value !== "string") {
+      return null;
+    }
+    var parts = value.trim().split(/[-_]/);
+    var language = parts[0].toLowerCase();
+    var tag = parts.length > 1 ? language + "-" + parts[1].toUpperCase() : language;
+    if (LANGUAGE_FORMAT.test(tag)) {
+      return tag;
+    }
+    return LANGUAGE_FORMAT.test(language) ? language : null;
+  }
+  function auctionLanguage() {
+    return normalizeLanguage(cfg.language);
+  }
   var SESSION_KEY = "irios_session_id";
   var DEDUP_MS = 2e3;
   var state = {
     started: false,
+    // Consent was given on this page: withdrawing it then has something to erase (tracker.mjs stop)
+    consented: false,
     ready: false,
     queue: [],
     // uids of the logged-in customer (CRM, email, phone). The browser one (irs1P cookie) is added by the Irios script to
@@ -169,6 +187,29 @@
       return { uids: [], events: [] };
     });
   }
+  function reportRevocation() {
+    if (!cfg.revocationsUrl || typeof window.fetch !== "function") {
+      return Promise.resolve();
+    }
+    var request = function(withNonce) {
+      var headers = { Accept: "application/json" };
+      if (withNonce && cfg.restNonce) {
+        headers["X-WP-Nonce"] = cfg.restNonce;
+      }
+      return window.fetch(cfg.revocationsUrl, {
+        method: "POST",
+        credentials: "same-origin",
+        cache: "no-store",
+        keepalive: true,
+        headers: headers
+      });
+    };
+    var done = function() {
+    };
+    return request(true).then(function(r) {
+      return r.status === 403 ? request(false) : r;
+    }).then(done, done);
+  }
 
   // irios-woocommerce/assets/js/src/sensitive.mjs
   function sensitivePage() {
@@ -281,7 +322,8 @@
     var units = (config.units || []).filter(function(u) {
       return u && u.adUnit && u.auth && u.positions && u.positions.length;
     });
-    if (!units.length) {
+    var language = normalizeLanguage(config.language) || auctionLanguage();
+    if (!units.length || !language) {
       return Promise.resolve(null);
     }
     return loadLoader().then(function() {
@@ -290,7 +332,7 @@
       var loader = new window.IriosLoader(Object.assign(adUser(pageType), {
         pageType: pageType,
         searchQuery: String(searchQuery).slice(0, 255),
-        language: config.language,
+        language: language,
         adUnits: units.map(function(u) {
           return { id: u.adUnit, auth: u.auth, type: "product", maxAds: u.positions.length };
         })
@@ -902,7 +944,12 @@
     if (!pageType) {
       return null;
     }
-    var context = { pageType: pageType };
+    var language = auctionLanguage();
+    if (!language) {
+      debug("banners not requested: the store has no valid language (" + cfg.language + ")");
+      return null;
+    }
+    var context = { pageType: pageType, language: language };
     if (pageType === "SEARCH") {
       context.searchQuery = String(page.value || "").trim().slice(0, 255);
       if (!context.searchQuery) {
@@ -1303,6 +1350,7 @@
       return;
     }
     state.started = true;
+    state.consented = true;
     state.sessionId = sessionId();
     pageEvents().forEach(enqueue);
     if (page.ads || document.querySelector(".irios-banner[data-ad-unit]")) {
@@ -1343,20 +1391,34 @@
     renderBanners();
   }
   function stop() {
+    var browserId = readCookie("irs1P");
+    var revoke = state.consented || !!browserId;
     state.started = false;
+    state.consented = false;
     state.ready = false;
     state.queue = [];
     state.uids = [];
     state.recent = {};
     state.lastVariation = null;
     try {
-      ["irs1P", "irsUserData"].forEach(function(name) {
-        document.cookie = name + "=; Max-Age=0; Path=/";
-      });
+      document.cookie = "irsUserData=; Max-Age=0; Path=/";
       window.sessionStorage.removeItem(SESSION_KEY);
     } catch (e) {
     }
     cancelPush();
+    var removeBrowserId = function() {
+      if (!state.started && readCookie("irs1P") === browserId) {
+        try {
+          document.cookie = "irs1P=; Max-Age=0; Path=/";
+        } catch (e) {
+        }
+      }
+    };
+    if (revoke) {
+      reportRevocation().then(removeBrowserId);
+    } else {
+      removeBrowserId();
+    }
   }
 
   // irios-woocommerce/assets/js/src/live-search.mjs

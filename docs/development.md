@@ -190,11 +190,13 @@ compat/run.sh astra kadence    # only those
 
 ## Translations
 
-The plugin is written in English. The settings and the admin notices stay in English in every language (the IRIOS
-Media standard): only what shoppers see is translated ("About this ad", the default sponsored label). It ships a
-Spanish translation (`es_ES`) of those texts in `irios-woocommerce/languages/`; the admin entries of the `.po` are left
-empty on purpose. Any
-other language shows the English texts.
+The plugin is written in English. The admin (settings page, admin notices, plugin links, the sensitive categories
+tree) is always in English, whatever the store language (the IRIOS Media standard): its texts are plain strings, never
+passed through `__()`, `esc_html__()` and the like, so neither the bundled `.po` nor translate.wordpress.org can
+translate them (`tests/I18nAdminTest.php` checks it). Only what shoppers see is translatable, with the
+`irios-woocommerce` text domain: the "About this ad" dialog (`Assets.php`) and the default sponsored label
+(`Settings::default_sponsored_label()`). It ships a Spanish translation (`es_ES`) of those texts in
+`irios-woocommerce/languages/`. Any other language shows the English texts.
 
 To add a language, translate `irios-woocommerce.pot` (e.g. with Poedit) into `irios-woocommerce-<locale>.po` and
 compile it to `.mo`. After changing texts in the code, update the template and the translations (GNU gettext):
@@ -204,11 +206,13 @@ cd irios-woocommerce
 xgettext --language=PHP --from-code=UTF-8 --keyword=__ --keyword=_e --keyword=esc_html__ --keyword=esc_html_e \
   --keyword=esc_attr__ --keyword=esc_attr_e --add-comments=translators --no-wrap \
   -o languages/irios-woocommerce.pot src/*.php irios-woocommerce.php uninstall.php
-msgmerge --update --no-wrap languages/irios-woocommerce-es_ES.po languages/irios-woocommerce.pot
+msgmerge --update --no-wrap --backup=off languages/irios-woocommerce-es_ES.po languages/irios-woocommerce.pot
+msgattrib --no-obsolete --no-wrap -o languages/irios-woocommerce-es_ES.po languages/irios-woocommerce-es_ES.po
 msgfmt -o languages/irios-woocommerce-es_ES.mo languages/irios-woocommerce-es_ES.po
 ```
 
-The plugin description in the header is not picked up by `xgettext`: keep its entry at the end of the `.pot`.
+Remove the obsolete entries (`#~`) that `msgmerge` leaves at the end of the `.po` (`msgattrib --no-obsolete`) before
+compiling. The plugin description in the header stays in English: it is not in the `.pot` and has no translation.
 
 ## Legacy settings
 

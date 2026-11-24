@@ -8,6 +8,8 @@ namespace Irios\WooCommerce;
  *
  * And `GET /wp-json/irios/v1/cards?ids=…&layout=classic|block` → product cards for the winning ads, rendered by the
  * store's theme (see Cards).
+ *
+ * And `POST /wp-json/irios/v1/revocations` → the visitor withdrew consent (see Revocations).
  */
 final class Rest {
 
@@ -18,6 +20,15 @@ final class Rest {
 			array(
 				'methods'             => 'GET',
 				'callback'            => array( self::class, 'context' ),
+				'permission_callback' => array( self::class, 'from_the_store' ),
+			)
+		);
+		register_rest_route(
+			'irios/v1',
+			'/revocations',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( Revocations::class, 'revoke' ),
 				'permission_callback' => array( self::class, 'from_the_store' ),
 			)
 		);
@@ -55,9 +66,9 @@ final class Rest {
 
 	/**
 	 * Only from a page of this store. These routes answer for the visitor the request comes from —`/context` hands
-	 * over the pending cart events and clears them— so another site must not be able to call them: WordPress answers
-	 * REST requests with `Access-Control-Allow-Credentials: true`, so without this a third-party page could read the
-	 * visitor's cart or make it lose its events.
+	 * over the pending cart events and clears them, `/revocations` withdraws their consent— so another site must not
+	 * be able to call them: WordPress answers REST requests with `Access-Control-Allow-Credentials: true`, so without
+	 * this a third-party page could read the visitor's cart, make it lose its events or withdraw their consent.
 	 *
 	 * The browser states it in `Sec-Fetch-Site`; where it is missing (an old browser), the `Referer` host is used, and
 	 * a request without either is allowed, as it cannot come from another site's page.
@@ -123,6 +134,8 @@ final class Rest {
 		if ( Consent::granted( $settings ) ) {
 			if ( is_user_logged_in() ) {
 				$user     = wp_get_current_user();
+				// Seen with consent: this is now the customer's last answer (the customers feed follows it)
+				Consent::remember( (int) $user->ID, true );
 				$customer = class_exists( \WC_Customer::class ) ? new \WC_Customer( (int) $user->ID ) : null;
 				$uids     = Identity::customer_uids(
 					(int) $user->ID,

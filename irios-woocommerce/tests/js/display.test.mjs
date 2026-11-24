@@ -103,6 +103,40 @@ describe("Display", () => {
   });
 });
 
+describe("Display on the front page", () => {
+  // The home page has no automatic position: the shop places home-main and home-main-mobile by hand (shortcode),
+  // where it wants them, and each one is only shown on its device.
+  const placedByHand =
+    '<main><div class="hero">Hero</div>' +
+    '<div class="irios-banner" data-ad-unit="1" data-auth="a" data-device="desktop" data-tag="home-main"></div>' +
+    '<div class="irios-banner" data-ad-unit="2" data-auth="b" data-device="mobile" data-tag="home-main-mobile"></div>' +
+    "<p>Offers</p></main>";
+
+  it("the placements stay where the shortcodes are, one per device, in a HOMEPAGE auction", async () => {
+    store = storefront({ page: { type: "page", pageType: "HOMEPAGE" }, config: { bannersEnabled: "1" }, body: placedByHand, before: width(1280) });
+    await settle();
+    const hero = store.window.document.querySelector(".hero");
+    expect(hero.nextElementSibling.getAttribute("data-ad-unit")).toBe("1");
+    expect(store.log.auctions[0].pageType).toBe("HOMEPAGE");
+    expect(store.log.auctions[0].adUnits.map((u) => u.id)).toEqual([1]);
+    store.close();
+
+    store = storefront({ page: { type: "page", pageType: "HOMEPAGE" }, config: { bannersEnabled: "1" }, body: placedByHand, before: width(375) });
+    await settle();
+    expect(store.log.auctions[0].adUnits.map((u) => u.id)).toEqual([2]);
+  });
+
+  it("a slot with a home position saved by an earlier version is not moved: it is not placed automatically", async () => {
+    store = storefront({
+      page: { type: "page", pageType: "HOMEPAGE" },
+      config: { bannersEnabled: "1" },
+      body: '<main><p>Content</p></main><div class="irios-banner" data-ad-unit="1" data-auth="a" data-irios-position="home_main" hidden></div>',
+    });
+    await settle();
+    expect(store.window.document.querySelector("main .irios-banner")).toBeNull();
+  });
+});
+
 describe("push notifications", () => {
   const pushConfig = (trigger, extra = {}) => ({
     push: { id: 9, auth: "p", trigger, afterPages: 2, repeatDays: 30, serviceWorker: "https://shop.test/irios-sw.js", scope: "/", ...extra },

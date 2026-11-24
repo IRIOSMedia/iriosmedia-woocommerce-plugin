@@ -140,12 +140,12 @@ final class Events {
 
 	/**
 	 * Sponsored Products in search: only with a search term and configured positions (each ad unit with its positions).
-	 * The language is that of the page being viewed in WordPress (with WPML or Polylang, that of the store version the
-	 * visitor is searching in). A search page (pageType SEARCH) sends no category: IRIOS ignores it there, even in a
-	 * search filtered by category.
+	 * The language is that of every auction (Settings::store_language): the page being viewed in WordPress (with WPML
+	 * or Polylang, that of the store version the visitor is searching in), else the site language. A search page (pageType SEARCH) sends no
+	 * category: IRIOS ignores it there, even in a search filtered by category.
 	 */
 	private static function search_ads( Settings $settings, string $query ): ?array {
-		$language = Settings::bcp47_language( determine_locale() );
+		$language = Settings::store_language();
 		if ( ! $settings->search_ads_enabled() || '' === $query || null === $language ) {
 			return null;
 		}

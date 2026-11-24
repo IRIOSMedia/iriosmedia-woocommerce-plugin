@@ -80,9 +80,13 @@ final class Assets {
 			'asesorCookie'    => Consent::ASESOR_COOKIE,
 			'contextUrl'      => esc_url_raw( rest_url( 'irios/v1/context' ) ),
 			'restNonce'       => wp_create_nonce( 'wp_rest' ),
+			// Where a consent withdrawal is reported, so IRIOS Media erases the shopper's data (Revocations)
+			'revocationsUrl'  => esc_url_raw( rest_url( 'irios/v1/revocations' ) ),
 			'cardsUrl'        => esc_url_raw( rest_url( 'irios/v1/cards' ) ),
 			'storeApiUrl'     => esc_url_raw( rest_url( 'wc/store/v1/' ) ),
 			'sponsoredLabel'  => $settings->sponsored_label(),
+			// Language of every auction (banners, video and Sponsored Products), from the store locale (Settings::store_language)
+			'language'        => Settings::store_language(),
 			// To render an ad from Irios data if WordPress does not return its card.
 			'currency'        => function_exists( 'get_woocommerce_currency' ) ? get_woocommerce_currency() : 'EUR',
 			'productBase'     => self::product_base(),
@@ -149,7 +153,7 @@ final class Assets {
 	 * disabled or the language is not valid.
 	 */
 	private static function live_search_ads( Settings $settings ): ?array {
-		$language = Settings::bcp47_language( determine_locale() );
+		$language = Settings::store_language();
 		$slots    = $settings->sponsored_slots();
 		if ( ! $settings->search_ads_enabled() || null === $language || array() === $slots ) {
 			return null;

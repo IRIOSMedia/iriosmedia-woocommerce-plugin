@@ -6,12 +6,28 @@ Changes in each version of IRIOS Media for WooCommerce. Download any version fro
 
 ### Added
 
+- **One catalog of positions with the IRIOS Media ad unit names.** The positions are the same in every IRIOS Media
+  integration, and the ad units are named after them (`plp-top`, `pdp-main`…, with `-mobile` for the mobile ones).
+  The settings show each position's ad unit name, in the shared order, and choosing a position with an empty Tag
+  fills it in with that name (with `-mobile` for a Mobile row). The home page has no automatic position, because every
+  home page is different: its banners, `home-main` and `home-secondary` (and their `-mobile` ones), are placed by hand
+  with the shortcode, wherever the shop wants them.
+- **Consent withdrawal erases the shopper's data in IRIOS Media.** When a shopper withdraws consent, the storefront
+  tells the store before removing the IRIOS browser cookie. The store notes the withdrawal for that browser and, if the
+  shopper is logged in, for their customer account, with hashed identifiers only, and their last answer becomes "no".
+  The sync service reads them from the new `GET /wp-json/irios/v1/revocations` (same key as orders and customers,
+  oldest first, with `revoked_after` and `after_id`) and asks IRIOS Media to erase them. A repeated withdrawal with no
+  consent in between is noted once. The withdrawals are kept in a table of their own, removed on uninstall. Once a
+  day (WP-Cron) the store deletes the withdrawals older than 90 days: the sync service reads them every few minutes,
+  so they are only a mailbox. A repeated withdrawal is still noted once after that.
+
 - **Sensitive Data** (General): the store can mark product categories as sensitive (health…), and optionally **treat
   all searches as sensitive** (off by default). A category covers all its subcategories, also those created later, and
   a product is sensitive if any of its categories is. Then, even with consent, nothing about them reaches IRIOS Media
   tied to the shopper (GDPR, art. 9; DSA, art. 26.3):
   - no page events of a sensitive category or product page (nor search events when searches are sensitive); cart
-    events leave out the sensitive products, and are not sent if none is left;
+    events leave out the sensitive products, and are not sent if none is left, but are still sent from a sensitive
+    page with the products that are not sensitive; `checkout-step` is never sensitive;
   - the ads of those pages (and of the search results and live search, when searches are sensitive) are requested
     without identifiers, as without consent; they are still shown;
   - orders with a sensitive product are left out of the plugin's API, so the purchase never reaches IRIOS Media.
@@ -19,6 +35,37 @@ Changes in each version of IRIOS Media for WooCommerce. Download any version fro
 
   Whatever cannot be checked (a product that no longer exists) counts as sensitive. Nothing changes until a category
   is marked or searches are set as sensitive.
+
+### Changed
+
+- **The admin is always in English**, whatever the store language, as in every IRIOS Media integration: the settings
+  page, the admin notices and the plugin links are no longer translated (until now they showed in Spanish in a store
+  in Spanish). Only what shoppers see is translated: the "About this ad" dialog and the default "Sponsored" label, in
+  English by default and in Spanish in a store in Spanish, exactly as before.
+- **Sensitive categories are chosen from a folded tree**, the same control as in the other IRIOS Media integrations,
+  instead of a multiple select. Closed, it is one line: how many categories are marked and which ("2 categories
+  marked: Health, Beauty > Skin…") or "No sensitive categories", with **Show categories** to open it. Open, every
+  product category is a checkbox, nested under its parent and in the store's order; each branch folds on its own
+  (folded unless it holds a marked category), and a filter box shows only the categories whose name matches. Ticking
+  a category shows its subcategories ticked, greyed out and "included", since it covers them all; unticking it gives
+  them back their own state. What is stored does not change: the ids of the marked categories only, comma separated,
+  and unknown ids are refused. Unticking them all and saving clears the setting. The small CSS and JS of the tree are
+  loaded on the plugin's settings screen only.
+- **Customers follow their last answer.** A registered customer is in the customers API as soon as their last consent
+  answer is "yes", even if they have never ordered, and never while it is "no": it becomes "yes" when they browse
+  logged in with consent, "no" when they withdraw it, and at checkout it becomes that order's answer. Customers with
+  no answer of their own yet keep the answer of their most recent paid order, not of any order. Each order keeps its
+  own answer. New `updated_since` on `GET /customers`: only the customers whose answer (or, without one, whose paid
+  orders) changed after that date, so a customer who just said "yes" comes in the next incremental read.
+
+### Fixed
+
+- **Banners and videos carry the store language**, as IRIOS Media now requires for every banner, video and Sponsored
+  Products ad (an ad request without it is rejected and nothing is shown). Every ad request takes the same language:
+  that of the page being viewed (with WPML or Polylang, the store version the shopper is on), as language and region
+  (`es-ES`); if the region cannot be used, the language alone (`es`); if the page has no usable locale, the site
+  language from **Settings > General**. If there is still no usable language, the page shows no ads instead of
+  failing. Push notifications do not need it.
 
 ## 1.1.3 - 2026-11-18
 

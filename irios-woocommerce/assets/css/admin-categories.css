@@ -1,0 +1,97 @@
+/* IRIOS Media for WooCommerce: the "Sensitive categories" tree of the settings screen (assets/js/admin-categories.js). */
+.irios-cat-tree [hidden] {
+	display: none !important;
+}
+
+.irios-cat-head {
+	margin: 0;
+}
+
+.irios-cat-summary {
+	margin-right: 8px;
+}
+
+.irios-cat-panel {
+	margin-top: 8px;
+	max-width: 520px;
+	max-height: 360px;
+	overflow: auto;
+	padding: 8px 12px;
+	border: 1px solid #c3c4c7;
+	background: #fff;
+}
+
+.irios-cat-search {
+	margin: 0 0 8px;
+}
+
+.irios-cat-filter {
+	width: 100%;
+}
+
+.irios-cat-list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.irios-cat-list .irios-cat-list {
+	margin-left: 22px;
+}
+
+.irios-cat-item {
+	margin: 0;
+}
+
+.irios-cat-row {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	min-height: 28px;
+}
+
+.irios-cat-row input[type="checkbox"] {
+	margin: 0 2px 0 0;
+}
+
+.irios-cat-branch,
+.irios-cat-leaf {
+	flex: 0 0 20px;
+	width: 20px;
+	height: 20px;
+}
+
+.irios-cat-branch {
+	padding: 0;
+	border: 0;
+	background: none;
+	cursor: pointer;
+	color: #50575e;
+}
+
+.irios-cat-branch::before {
+	content: "\25B8"; /* ▸ */
+	display: inline-block;
+	font-size: 14px;
+	line-height: 20px;
+	transition: transform 0.1s;
+}
+
+.irios-cat-branch[aria-expanded="true"]::before {
+	transform: rotate(90deg);
+}
+
+.irios-cat-branch:focus-visible {
+	outline: 2px solid #2271b1;
+	outline-offset: 1px;
+}
+
+.irios-cat-item.is-included > .irios-cat-row label {
+	color: #646970;
+}
+
+.irios-cat-included {
+	font-size: 12px;
+	color: #646970;
+	font-style: italic;
+}

@@ -48,7 +48,16 @@ final class AssetsConfigTest extends WordPressTestCase {
 		$this->assertSame( Settings::CONSENT_ASESOR_COOKIES, $config['consentMode'] );
 		$this->assertSame( 'Promoted', $config['sponsoredLabel'] );
 		$this->assertSame( 'https://shop.test/wp-json/irios/v1/context', $config['contextUrl'] );
+		$this->assertSame( 'https://shop.test/wp-json/irios/v1/revocations', $config['revocationsUrl'] );
 		$this->assertSame( 'https://shop.test/wp-json/irios/v1/cards', $config['cardsUrl'] );
+	}
+
+	public function test_it_carries_the_language_of_every_auction(): void {
+		$this->assertSame( 'es-ES', $this->config( array() )['language'] );
+
+		// A locale WordPress cannot turn into a region: the language alone, never something irios-loader.js rejects
+		Functions\when( 'determine_locale' )->justReturn( 'es_419' );
+		$this->assertSame( 'es', $this->config( array() )['language'] );
 	}
 
 	public function test_it_says_whether_every_search_is_sensitive(): void {

@@ -3,7 +3,8 @@
 // receive:
 //   - IriosEvent (tracker) → events;  IriosLoader (auction) → auctions, with the winners given to it;
 //   - IriosTracker (ad load, visibility and click) → tracked;
-//   - fetch: /irios/v1/context and /irios/v1/cards with the test's responses → requests.
+//   - fetch: /irios/v1/context, /irios/v1/cards and /irios/v1/revocations with the test's responses → requests (and
+//     revocations, with the cookies each one carried).
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { JSDOM } from "jsdom";
@@ -44,10 +45,12 @@ export const CONFIG = {
   consentCategory: "marketing",
   asesorCookie: "cdp_cookie_consent",
   contextUrl: `${ORIGIN}/wp-json/irios/v1/context`,
+  revocationsUrl: `${ORIGIN}/wp-json/irios/v1/revocations`,
   restNonce: "nonce",
   cardsUrl: `${ORIGIN}/wp-json/irios/v1/cards`,
   storeApiUrl: `${ORIGIN}/wp-json/wc/store/v1/`,
   sponsoredLabel: "Promoted",
+  language: "es-ES",
   currency: "EUR",
   productBase: "/product/",
   liveSearchAds: null,
@@ -81,17 +84,18 @@ export const grid = (...ids) => `<ul class="products columns-4">${ids.map(card).
 
 /**
  * Mounts the page and runs the script. Options: consent (banner cookie), page (iriosWooPage), body (HTML),
- * config (CONFIG overrides), context ({uids, events}), winners (from the auction), cards (ids returned by /cards or
- * null for an error), before(window) to set up more doubles.
+ * config (CONFIG overrides), context ({uids, events}, or a function returning them on each request), winners (from the
+ * auction), cards (ids returned by /cards or null for an error), revocation(nonce) → status of a POST /revocations,
+ * before(window) to set up more doubles.
  */
-export function storefront({ consent = true, page = { type: "page" }, body = "", config = {}, context = {}, winners = [], cards, before } = {}) {
+export function storefront({ consent = true, page = { type: "page" }, body = "", config = {}, context = {}, winners = [], cards, revocation = () => 200, before } = {}) {
   const dom = new JSDOM(`<!doctype html><html><head></head><body>${body}</body></html>`, {
     url: `${ORIGIN}/`,
     runScripts: "outside-only",
     pretendToBeVisual: true,
   });
   const { window } = dom;
-  const log = { events: [], auctions: [], tracked: [], requests: [] };
+  const log = { events: [], auctions: [], tracked: [], requests: [], revocations: [] };
 
   if (consent !== null) {
     window.document.cookie = `cdp_cookie_consent=${encodeURIComponent(JSON.stringify({ necessary: true, marketing: consent }))}; path=/`;
@@ -106,6 +110,12 @@ export function storefront({ consent = true, page = { type: "page" }, body = "",
     log.tracked.push(...units);
   };
   window.IriosLoader = function (cfg) {
+    // Like irios-loader.js: an auction with a banner, video or product ad unit needs a valid language
+    const pushOnly = (cfg.adUnits || []).every((u) => u.type === "push");
+    if (!pushOnly && (typeof cfg.language !== "string" || !/^[a-z]{2,3}(-[A-Z]{2,3})?$/.test(cfg.language))) {
+      log.rejected = (log.rejected || 0) + 1;
+      throw new TypeError("language is mandatory unless all adUnits are push");
+    }
     log.auctions.push(cfg);
     this.adResponsesPromise = Promise.resolve(winners);
   };
@@ -117,7 +127,14 @@ export function storefront({ consent = true, page = { type: "page" }, body = "",
     log.requests.push(u.pathname + u.search);
     const json = (status, data) => ({ ok: status < 400, status, headers: new Map(), json: async () => data });
     if (u.pathname === "/wp-json/irios/v1/context") {
-      return json(200, { uids: context.uids || [], events: context.events || [] });
+      const ctx = typeof context === "function" ? context() : context;
+      return json(200, { uids: ctx.uids || [], events: ctx.events || [] });
+    }
+    if (u.pathname === "/wp-json/irios/v1/revocations") {
+      // What the store would see: the cookies the request carries when it is made
+      const nonce = (options.headers || {})["X-WP-Nonce"] || null;
+      log.revocations.push({ method: options.method, keepalive: options.keepalive, body: options.body, nonce, cookie: window.document.cookie });
+      return json(revocation(nonce), { recorded: true });
     }
     if (u.pathname === "/wp-json/irios/v1/cards") {
       if (cards === null) return json(500, {});

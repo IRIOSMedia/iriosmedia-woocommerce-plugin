@@ -10,7 +10,9 @@ namespace Irios\WooCommerce;
  * - sensitive are those categories and all their subcategories (also the ones created later), and the products in any
  *   of them (a variation, through its parent product);
  * - no event of a sensitive page or product is sent to IRIOS Media; a cart event keeps only its other products, and
- *   nothing is sent if none is left (Events, and the storefront JS for the page events);
+ *   nothing is sent if none is left (Events, and the storefront JS for the page events). Cart events do not depend on
+ *   the page they happen on: adding a product that is not sensitive from a sensitive page is still sent. A checkout
+ *   step carries no products and is never sensitive;
  * - the ads of a sensitive page (or search) are requested without identifiers, as without consent (storefront JS);
  * - the orders with a sensitive product are not in the feed of the sync service (Feed), so the purchase never reaches
  *   IRIOS Media. Customers and the catalog are not affected.

@@ -3,6 +3,8 @@
 // (tests/WordPressTestCase.php) and the doubles in tests/doubles.php.
 define( 'ABSPATH', __DIR__ . '/' );
 define( 'HOUR_IN_SECONDS', 3600 );
+define( 'DAY_IN_SECONDS', 86400 );
+define( 'ARRAY_A', 'ARRAY_A' );
 // The plugin's main file: the code reads its folder to find assets/ (Push serves the service worker from there)
 define( 'IRIOS_WC_FILE', dirname( __DIR__ ) . '/irios-woocommerce.php' );
 define( 'IRIOS_WC_VERSION', '0.0.0-test' );

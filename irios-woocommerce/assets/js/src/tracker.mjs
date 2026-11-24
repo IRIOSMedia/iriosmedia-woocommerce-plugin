@@ -3,7 +3,7 @@ import { hasConsent } from './consent.mjs';
 import { renderBanners } from './display.mjs';
 import { flushCartEvents, pageEvents } from './events.mjs';
 import { enqueue, send } from './events-api.mjs';
-import { fetchContext, sessionId } from './identity.mjs';
+import { fetchContext, readCookie, reportRevocation, sessionId } from './identity.mjs';
 import { cancelPush, pushOnPage } from './push.mjs';
 import { renderSearchAds } from './search-ads.mjs';
 
@@ -49,6 +49,7 @@ export function start() {
 		return;
 	}
 	state.started = true;
+	state.consented = true;
 	state.sessionId = sessionId();
 
 	pageEvents().forEach( enqueue );
@@ -99,8 +100,17 @@ export function renderAds() {
 	renderBanners();
 }
 
+/**
+ * Consent withdrawn: nothing more is sent, and the store is told so IRIOS Media erases what it holds about the
+ * shopper (only if there was consent on this page or the browser still has its IRIOS id: a "deny" from someone who
+ * never accepted has nothing to erase). The browser id (irs1P) is removed once the store has it, as the store reads
+ * it from the cookie of that request.
+ */
 export function stop() {
+	var browserId = readCookie( 'irs1P' );
+	var revoke = state.consented || !! browserId;
 	state.started = false;
+	state.consented = false;
 	state.ready = false;
 	state.queue = [];
 	state.uids = [];
@@ -108,11 +118,21 @@ export function stop() {
 	state.lastVariation = null;
 	try {
 		// Irios cookies on the store (set by its script with Path=/); its own-domain one (irs3P) is unreachable
-		[ 'irs1P', 'irsUserData' ].forEach( function ( name ) {
-			document.cookie = name + '=; Max-Age=0; Path=/';
-		} );
+		document.cookie = 'irsUserData=; Max-Age=0; Path=/';
 		window.sessionStorage.removeItem( SESSION_KEY );
 	} catch ( e ) {}
 	cancelPush();
+	var removeBrowserId = function () {
+		// Unless consent was given again meanwhile, or the Irios script already set a new one
+		if ( ! state.started && readCookie( 'irs1P' ) === browserId ) {
+			try {
+				document.cookie = 'irs1P=; Max-Age=0; Path=/';
+			} catch ( e ) {}
+		}
+	};
+	if ( revoke ) {
+		reportRevocation().then( removeBrowserId );
+	} else {
+		removeBrowserId();
+	}
 }
-

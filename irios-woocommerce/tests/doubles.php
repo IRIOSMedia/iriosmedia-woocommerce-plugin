@@ -160,6 +160,12 @@ class WC_Product {
 class WC_Order {
 	public array $meta  = array();
 	public int $saves   = 0;
+	/** Registered customer who placed it; 0 for a guest. */
+	public int $customer_id = 0;
+
+	public function get_customer_id() {
+		return $this->customer_id;
+	}
 
 	public function update_meta_data( string $key, $value ): void {
 		$this->meta[ $key ] = $value;
@@ -243,8 +249,14 @@ class WPDB_Fake {
 	public string $prefix = 'wp_';
 	public string $posts = 'wp_posts';
 	public string $postmeta = 'wp_postmeta';
+	public string $usermeta = 'wp_usermeta';
+	public string $users = 'wp_users';
 	/** @var string[] SQL actually run */
 	public array $queries = array();
+	/** @var array<int,array{table:string,data:array,format:array}> rows inserted */
+	public array $inserted = array();
+	/** @var array[] rows for get_results */
+	public array $results = array();
 	/** @var mixed[] rows for get_col */
 	public array $col = array();
 	/** @var mixed value for get_var */
@@ -265,6 +277,25 @@ class WPDB_Fake {
 	public function get_var( string $sql ) {
 		$this->queries[] = $sql;
 		return $this->var;
+	}
+
+	public function get_results( string $sql, $output = null ): array {
+		$this->queries[] = $sql;
+		return $this->results;
+	}
+
+	public function insert( string $table, array $data, $format = null ) {
+		$this->inserted[] = array( 'table' => $table, 'data' => $data, 'format' => $format );
+		return 1;
+	}
+
+	public function query( string $sql ) {
+		$this->queries[] = $sql;
+		return true;
+	}
+
+	public function get_charset_collate(): string {
+		return 'DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci';
 	}
 }
 

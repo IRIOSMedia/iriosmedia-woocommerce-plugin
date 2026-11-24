@@ -9,8 +9,10 @@ import { cfg, page } from './config.mjs';
  * visitor. Then:
  *   · the page events of a sensitive page are not sent, nor any search event when searches are sensitive;
  *   · its ads are requested and tracked without identifiers, as without consent (adUser).
- * The cart events come from the server already without the sensitive products, and the orders with them never leave
- * the store (Sensitive.php).
+ * The cart events (add-to-cart, remove-from-cart, cart-view) come from the server already without the sensitive
+ * products, so they are sent on any page, sensitive or not, with whatever products are left (none left, no event). The
+ * checkout steps carry no products and are never sensitive. The orders with sensitive products never leave the store
+ * (Sensitive.php).
  */
 
 /** The page being viewed is sensitive. */

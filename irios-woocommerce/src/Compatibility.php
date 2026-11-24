@@ -45,7 +45,7 @@ final class Compatibility {
 		$label = $theme->get( 'Name' ) . ' (' . get_stylesheet() . ')';
 		if ( get_template() !== get_stylesheet() ) {
 			$parent = wp_get_theme( get_template() );
-			$label .= ', ' . __( 'child theme of', 'irios-woocommerce' ) . ' ' . $parent->get( 'Name' ) . ' (' . get_template() . ')';
+			$label .= ', child theme of ' . $parent->get( 'Name' ) . ' (' . get_template() . ')';
 		}
 		return $label;
 	}
@@ -59,12 +59,11 @@ final class Compatibility {
 			'<div class="notice notice-warning inline"><p><strong>%1$s</strong> %2$s</p></div>',
 			esc_html(
 				sprintf(
-					/* translators: %s: name and slug of the active theme */
-					__( 'Unsupported theme: %s.', 'irios-woocommerce' ),
+					'Unsupported theme: %s.',
 					self::theme_label()
 				)
 			),
-			esc_html__( 'This theme is not among the themes tested with IRIOS Media, so some ads (Sponsored Products in search or in the live search, or banners in automatic positions) may not be shown or may not be placed correctly. Please contact Irios support.', 'irios-woocommerce' )
+			esc_html( 'This theme is not among the themes tested with IRIOS Media, so some ads (Sponsored Products in search or in the live search, or banners in automatic positions) may not be shown or may not be placed correctly. Please contact Irios support.' )
 		);
 	}
 }

@@ -23,6 +23,8 @@ abstract class WordPressTestCase extends TestCase {
 	/** What WC() returns. */
 	protected \stdClass $wc;
 	protected int $user_id = 0;
+	/** Stored user meta: user id → key → value. */
+	protected array $user_meta = array();
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -52,6 +54,13 @@ abstract class WordPressTestCase extends TestCase {
 		Functions\when( 'delete_transient' )->alias(
 			function ( $key ) {
 				unset( $this->transients[ $key ] );
+				return true;
+			}
+		);
+		Functions\when( 'get_user_meta' )->alias( fn ( $user, $key = '', $single = false ) => $this->user_meta[ (int) $user ][ $key ] ?? '' );
+		Functions\when( 'update_user_meta' )->alias(
+			function ( $user, $key, $value ) {
+				$this->user_meta[ (int) $user ][ $key ] = $value;
 				return true;
 			}
 		);

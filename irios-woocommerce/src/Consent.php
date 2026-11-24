@@ -14,6 +14,19 @@ final class Consent {
 
 	public const ASESOR_COOKIE = 'cdp_cookie_consent';
 
+	/**
+	 * The registered customer's last answer (user meta, yes/no): what decides whether they are in the customers feed.
+	 * Set when a logged-in customer is seen with consent, when they withdraw it and at checkout with the order's answer.
+	 * The same key as the order's own answer (Orders::CONSENT_META), each on its own object.
+	 */
+	public const USER_META = '_irios_consent';
+
+	/**
+	 * When the customer's last answer last changed (user meta, GMT `Y-m-d H:i:s`): the customers feed's `updated_since`
+	 * filters on it, so a customer who says yes (with or without an order) shows up in the next incremental read.
+	 */
+	public const USER_META_AT = '_irios_consent_at';
+
 	/** Cookie category the visitor must accept: Irios does advertising and audiences. It exists under this name in
 	 *  the WP Consent API and in Asesor de Cookies RGPD. */
 	public const CATEGORY = 'marketing';
@@ -52,5 +65,27 @@ final class Consent {
 			return self::asesor_allows( $raw, self::CATEGORY );
 		}
 		return self::api_available() && self::banner_registered() && (bool) wp_has_consent( self::CATEGORY );
+	}
+
+	/**
+	 * Remembers a registered customer's last answer. Written only when it changes: a logged-in customer with consent
+	 * is seen on every page, and the user meta is already in memory. Each change also stamps when it happened
+	 * (USER_META_AT), which is what the customers feed's incremental reads look at.
+	 */
+	public static function remember( int $user_id, bool $granted ): void {
+		if ( $user_id <= 0 ) {
+			return;
+		}
+		$answer = $granted ? 'yes' : 'no';
+		if ( get_user_meta( $user_id, self::USER_META, true ) !== $answer ) {
+			update_user_meta( $user_id, self::USER_META, $answer );
+			update_user_meta( $user_id, self::USER_META_AT, gmdate( 'Y-m-d H:i:s' ) );
+		}
+	}
+
+	/** The registered customer's last answer: 'yes', 'no', or '' when none was recorded yet. */
+	public static function last_answer( int $user_id ): string {
+		$answer = $user_id > 0 ? (string) get_user_meta( $user_id, self::USER_META, true ) : '';
+		return in_array( $answer, array( 'yes', 'no' ), true ) ? $answer : '';
 	}
 }

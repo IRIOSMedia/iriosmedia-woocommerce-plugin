@@ -2,6 +2,7 @@
 
 namespace Irios\WooCommerce\Tests;
 
+use Irios\WooCommerce\Consent;
 use Irios\WooCommerce\Identity;
 use Irios\WooCommerce\Orders;
 
@@ -61,6 +62,28 @@ final class OrdersTest extends WordPressTestCase {
 		Orders::capture( $order );
 
 		$this->assertSame( array( Orders::CONSENT_META => 'yes' ), $order->meta );
+	}
+
+	public function test_the_answer_at_checkout_becomes_the_registered_customers_last_answer(): void {
+		$this->user_meta[7][ Consent::USER_META ] = 'yes';
+		$this->given_no_consent();
+		$order              = new \WC_Order();
+		$order->customer_id = 7;
+
+		Orders::capture( $order );
+		$this->assertSame( 'no', $this->user_meta[7][ Consent::USER_META ] );
+
+		$this->given_consent();
+		Orders::capture( $order );
+		$this->assertSame( 'yes', $this->user_meta[7][ Consent::USER_META ] );
+	}
+
+	public function test_a_guest_order_leaves_no_customer_answer(): void {
+		$this->given_consent();
+
+		Orders::capture( new \WC_Order() );
+
+		$this->assertSame( array(), $this->user_meta );
 	}
 
 	public function test_orders_placed_before_the_consent_answer_count_as_without_consent(): void {

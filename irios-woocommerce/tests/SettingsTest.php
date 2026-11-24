@@ -2,10 +2,11 @@
 
 namespace Irios\WooCommerce\Tests;
 
+use Brain\Monkey\Functions;
 use Irios\WooCommerce\Settings;
 use PHPUnit\Framework\Attributes\DataProvider;
 
-/** Error messages are translatable (__()): WordPressTestCase stubs the translation functions. */
+/** Error messages are plain English (the admin is not translated); WordPressTestCase stubs the translation functions. */
 final class SettingsTest extends WordPressTestCase {
 
 	public function test_defaults_when_empty(): void {
@@ -73,6 +74,9 @@ final class SettingsTest extends WordPressTestCase {
 			array( 'en-GB', true ),
 			array( 'es_ES', false ),
 			array( 'ES-es', false ),
+			array( 'es-es', false ),
+			array( 'es-419', false ),
+			array( 'pt-PT-ao90', false ),
 			array( '', false ),
 		);
 	}
@@ -91,6 +95,24 @@ final class SettingsTest extends WordPressTestCase {
 			array( 'ca', 'ca' ),
 			array( 'es-ES', null ),
 			array( '', null ),
+		);
+	}
+
+	#[DataProvider( 'storeLocales' )]
+	public function test_every_auction_language_comes_from_the_store_locale( string $page, string $site, ?string $expected ): void {
+		Functions\when( 'determine_locale' )->justReturn( $page );
+		Functions\when( 'get_locale' )->justReturn( $site );
+		$this->assertSame( $expected, Settings::store_language() );
+	}
+
+	public static function storeLocales(): array {
+		return array(
+			'page locale with region'           => array( 'es_ES', 'en_GB', 'es-ES' ),
+			'page locale with a variant'        => array( 'de_DE_formal', 'en_GB', 'de-DE' ),
+			'unusable region: language alone'   => array( 'es_419', 'en_GB', 'es' ),
+			'unusable page locale: site locale' => array( '', 'en_GB', 'en-GB' ),
+			'site locale without region'        => array( '??', 'ca', 'ca' ),
+			'nothing usable: no auction'        => array( '', '', null ),
 		);
 	}
 
@@ -165,6 +187,35 @@ final class SettingsTest extends WordPressTestCase {
 		// The sidebar row saved for all devices (before it was desktop only) is read as desktop
 		$this->assertSame( array( 'desktop', 'mobile', 'desktop' ), array_column( $result['banners'], 'device' ) );
 		$this->assertCount( 2, $result['errors'] );
+	}
+
+	public function test_the_home_page_has_no_automatic_position(): void {
+		$result = Settings::sanitize_banners(
+			array(
+				array( 'tag' => 'home-top', 'id' => '3', 'auth' => 'c', 'position' => 'home_top' ),
+			),
+			true
+		);
+
+		$this->assertSame( array(), $result['banners'] );
+		$this->assertStringContainsString( 'unknown position "home_top"', $result['errors'][0] );
+		$this->assertNotContains( 'home_main', Settings::POSITIONS );
+		$this->assertNotContains( 'home_secondary', Settings::POSITIONS );
+		$this->assertSame( array_values( array_filter( Settings::POSITIONS ) ), array_keys( Settings::AD_UNIT_NAMES ), 'every automatic position has its ad unit name' );
+	}
+
+	public function test_a_home_position_saved_by_an_earlier_version_is_read_as_manual_only(): void {
+		$result = Settings::sanitize_banners(
+			array(
+				array( 'tag' => 'home-main', 'device' => 'desktop', 'id' => '1', 'auth' => 'a', 'position' => 'home_main' ),
+				array( 'tag' => 'home-secondary-mobile', 'device' => 'mobile', 'id' => '2', 'auth' => 'b', 'position' => 'home_secondary' ),
+			)
+		);
+
+		$this->assertSame( array(), $result['errors'] );
+		$this->assertSame( array( 'home-main', 'home-secondary-mobile' ), array_column( $result['banners'], 'tag' ) );
+		$this->assertSame( array( '', '' ), array_column( $result['banners'], 'position' ), 'still placed with the shortcode by its tag' );
+		$this->assertSame( array( 'desktop', 'mobile' ), array_column( $result['banners'], 'device' ) );
 	}
 
 	public function test_the_category_sidebar_is_desktop_only(): void {

@@ -121,4 +121,18 @@ final class FeedTest extends WordPressTestCase {
 		$this->assertFalse( Feed::is_feed_request( false ) );
 		$this->assertTrue( Feed::is_feed_request( true ) );
 	}
+
+	public function test_the_withdrawals_are_read_with_an_api_key_but_sent_by_the_storefront_with_its_cookies(): void {
+		Functions\when( 'esc_url_raw' )->returnArg();
+		$_SERVER['REQUEST_URI']    = '/wp-json/irios/v1/revocations?after_id=10';
+		$_SERVER['REQUEST_METHOD'] = 'GET';
+		$this->assertTrue( Feed::is_feed_request( false ) );
+		$_SERVER['REQUEST_URI'] = '/?rest_route=/irios/v1/revocations&page=2';
+		$this->assertTrue( Feed::is_feed_request( false ) );
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+		$this->assertFalse( Feed::is_feed_request( false ) );
+		$_SERVER['REQUEST_URI'] = '/wp-json/irios/v1/revocations';
+		$this->assertFalse( Feed::is_feed_request( false ) );
+		unset( $_SERVER['REQUEST_METHOD'] );
+	}
 }

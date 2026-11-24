@@ -27,13 +27,11 @@ if ( defined( 'IRIOS_WC_FILE' ) ) {
 			if ( ! current_user_can( 'activate_plugins' ) ) {
 				return;
 			}
-			load_plugin_textdomain( 'irios-woocommerce', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 			printf(
 				'<div class="notice notice-error"><p>%s</p></div>',
 				esc_html(
 					sprintf(
-						/* translators: %s: folder and file of the other copy of the plugin that is active */
-						__( 'IRIOS Media for WooCommerce is not running: another version of the plugin is active (%s). Deactivate it in Plugins; the settings are kept.', 'irios-woocommerce' ),
+						'IRIOS Media for WooCommerce is not running: another version of the plugin is active (%s). Deactivate it in Plugins; the settings are kept.',
 						plugin_basename( IRIOS_WC_FILE )
 					)
 				)
@@ -59,6 +57,11 @@ spl_autoload_register(
 	}
 );
 
+// Consent withdrawals table (Revocations): created on activation, upgraded after an update by Plugin::boot. Its daily
+// purge of rows older than 90 days is scheduled on activation (and on boot if missing) and unscheduled on deactivation.
+register_activation_hook( __FILE__, array( \Irios\WooCommerce\Revocations::class, 'activate' ) );
+register_deactivation_hook( __FILE__, array( \Irios\WooCommerce\Revocations::class, 'deactivate' ) );
+
 // Production dependencies (libphonenumber to normalise phone numbers), bundled in the zip by bin/package.sh.
 if ( is_readable( __DIR__ . '/vendor/autoload.php' ) ) {
 	require_once __DIR__ . '/vendor/autoload.php';
@@ -75,7 +78,7 @@ add_action(
 	}
 );
 
-// English strings; translations bundled in languages/ (es_ES)
+// Storefront strings only (the admin is always in English); translations bundled in languages/ (es_ES)
 add_action(
 	'init',
 	static function (): void {

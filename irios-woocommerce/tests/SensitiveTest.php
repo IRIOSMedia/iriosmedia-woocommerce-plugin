@@ -270,7 +270,7 @@ final class SensitiveTest extends WordPressTestCase {
 		$this->assertStringContainsString( '"77"', $result['errors'][0] );
 	}
 
-	public function test_the_settings_screen_lists_every_category_with_its_path_and_the_marked_ones_selected(): void {
+	public function test_the_settings_screen_lists_every_category_and_the_marked_ones_checked(): void {
 		Functions\when( 'esc_attr' )->returnArg();
 		Functions\when( 'esc_attr__' )->returnArg();
 		Functions\when( 'esc_html' )->returnArg();
@@ -281,9 +281,10 @@ final class SensitiveTest extends WordPressTestCase {
 		$html = $integration->generate_irios_categories_html( 'sensitive_categories', array( 'title' => 'Sensitive categories' ) );
 
 		$this->assertStringContainsString( 'name="woocommerce_irios_sensitive_categories[]"', $html );
-		$this->assertStringContainsString( '<option value="2" selected="selected">Health > Allergy</option>', $html );
-		$this->assertStringContainsString( '<option value="3">Health > Allergy > Eye drops</option>', $html );
-		$this->assertStringContainsString( '<option value="4">Sports</option>', $html );
+		$this->assertMatchesRegularExpression( '/data-path="Health > Allergy">.*value="2" data-marked="1" checked="checked">/', $html );
+		$this->assertMatchesRegularExpression( '/data-path="Health > Allergy > Eye drops">.*value="3" data-marked="0" checked="checked" disabled="disabled">/', $html, 'included' );
+		$this->assertMatchesRegularExpression( '/data-path="Sports">.*value="4" data-marked="0">/', $html );
+		$this->assertStringContainsString( '1 category marked: Health > Allergy', $html );
 	}
 
 	public function test_saving_keeps_the_ids_of_existing_categories_and_reports_the_others(): void {

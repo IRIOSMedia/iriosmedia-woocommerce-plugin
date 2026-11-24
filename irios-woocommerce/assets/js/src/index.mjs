@@ -11,8 +11,8 @@
  *   config       the settings PHP printed, the page, and debug mode
  *   consent      whether there is consent, and noticing when it is given or withdrawn
  *   sensitive    sensitive pages and searches (health…): no events, ads without identifiers
- *   identity     the uids of the logged-in customer and the session
- *   tracker      loading the Irios script, the event queue, start() and stop()
+ *   identity     the uids of the logged-in customer, the session and reporting a consent withdrawal
+ *   tracker      loading the Irios script, the event queue, start() and stop() (which reports the withdrawal)
  *   events-api   window.IriosWoo.track for custom events
  *   events       the events of the page and of the cart
  *   search-ads   Sponsored Products in the results

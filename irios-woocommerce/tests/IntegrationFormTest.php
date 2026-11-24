@@ -91,6 +91,27 @@ final class IntegrationFormTest extends WordPressTestCase {
 		$this->assertStringContainsString( ' selected', $html, 'the saved one comes selected' );
 	}
 
+	public function test_each_position_shows_its_irios_ad_unit_name_in_the_shared_order(): void {
+		$this->integration->settings = array();
+
+		$html = $this->integration->generate_irios_banners_html( 'banners', array( 'title' => 'Placements' ) );
+
+		preg_match( '/<select class="irios-position"[^>]*>(.*?)<\/select>/s', $html, $select );
+		preg_match_all( '/<option value="([^"]*)"(?: data-ad-unit-name="([^"]*)")?[^>]*>([^<]*)<\/option>/', $select[1], $options, PREG_SET_ORDER );
+		$this->assertSame(
+			array(
+				array( '', '', 'Manual only' ),
+				array( 'category_before_products', 'plp-top', 'Category: top (plp-top)' ),
+				array( 'category_in_grid', 'plp-in-grid', 'Category: in grid (plp-in-grid)' ),
+				array( 'category_after_products', 'plp-bottom', 'Category: bottom (plp-bottom)' ),
+				array( 'category_sidebar', 'plp-sidebar', 'Category: sidebar (plp-sidebar)' ),
+				array( 'product_before_description', 'pdp-main', 'Product: description (pdp-main)' ),
+				array( 'product_before_related', 'pdp-secondary', 'Product: related (pdp-secondary)' ),
+			),
+			array_map( static fn ( array $o ): array => array( $o[1], $o[2] ?? '', $o[3] ), $options )
+		);
+	}
+
 	public function test_an_empty_table_still_lets_a_row_be_added(): void {
 		$this->integration->settings = array();
 

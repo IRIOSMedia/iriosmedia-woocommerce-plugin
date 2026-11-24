@@ -6,6 +6,7 @@ use Brain\Monkey\Functions;
 use Irios\WooCommerce\Banners;
 use Irios\WooCommerce\Catalog;
 use Irios\WooCommerce\Events;
+use Irios\WooCommerce\Settings;
 
 /**
  * IRIOS page context of the ad requests (pageType and, where the type needs it, the category path) and the banner
@@ -122,5 +123,60 @@ final class PageContextTest extends WordPressTestCase {
 			'<div class="irios-banner" data-ad-unit="1001" data-auth="abc" data-type="banner" data-device="all" data-tag="promo"></div>',
 			Banners::shortcode( array( 'tag' => 'promo' ) )
 		);
+	}
+
+	/** Display on: one placement for each automatic position, for any device. */
+	private function given_placements_everywhere(): void {
+		$rows = array();
+		foreach ( Settings::AD_UNIT_NAMES as $position => $name ) {
+			$rows[] = array(
+				'tag'      => $name,
+				'device'   => Settings::POSITION_CATEGORY_SIDEBAR === $position ? 'desktop' : 'all',
+				'id'       => (string) ( count( $rows ) + 1 ),
+				'auth'     => 'a',
+				'position' => $position,
+			);
+		}
+		$this->settings = array(
+			'js_domain'       => 'tracker.irios.test',
+			'store_id'        => '1234',
+			'banners_enabled' => 'yes',
+			'banners'         => (string) json_encode( $rows ),
+		);
+	}
+
+	/** @return string[] Positions of the slots printed for the JS to place. */
+	private function placed(): array {
+		ob_start();
+		Banners::positioned();
+		preg_match_all( '/data-irios-position="([a-z_]+)"/', (string) ob_get_clean(), $found );
+		return $found[1];
+	}
+
+	public function test_the_front_page_has_no_automatic_placements(): void {
+		$this->given_placements_everywhere();
+		$this->given_page( 'is_front_page' );
+
+		$this->assertSame( array(), $this->placed(), 'the home page is placed by hand with the shortcode' );
+	}
+
+	public function test_the_shop_page_as_front_page_is_the_home_page_without_category_placements(): void {
+		$this->given_placements_everywhere();
+		$this->given_page( 'is_front_page', 'is_shop' );
+
+		$this->assertSame( array(), $this->placed() );
+		$this->assertSame( 'HOMEPAGE', Events::page_context()['pageType'] );
+	}
+
+	public function test_other_pages_get_their_own_placements(): void {
+		$this->given_placements_everywhere();
+		Functions\when( 'get_queried_object' )->justReturn( $this->terms[3] );
+
+		$this->given_page( 'is_product_category' );
+		$this->assertSame( Settings::CATEGORY_POSITIONS, $this->placed() );
+		$this->given_page( 'is_shop' );
+		$this->assertSame( array(), $this->placed() );
+		$this->given_page( 'is_cart' );
+		$this->assertSame( array(), $this->placed() );
 	}
 }

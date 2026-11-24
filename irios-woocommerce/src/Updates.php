@@ -99,9 +99,9 @@ final class Updates {
 
 	/** "Release notes · Download the zip" */
 	private static function links( array $release ): string {
-		$links = sprintf( '<a href="%s" target="_blank" rel="noopener noreferrer">%s</a>', esc_url( $release['url'] ), esc_html__( 'Release notes', 'irios-woocommerce' ) );
+		$links = sprintf( '<a href="%s" target="_blank" rel="noopener noreferrer">%s</a>', esc_url( $release['url'] ), esc_html( 'Release notes' ) );
 		if ( '' !== $release['zip'] ) {
-			$links .= sprintf( ' · <a href="%s">%s</a>', esc_url( $release['zip'] ), esc_html__( 'Download the zip', 'irios-woocommerce' ) );
+			$links .= sprintf( ' · <a href="%s">%s</a>', esc_url( $release['zip'] ), esc_html( 'Download the zip' ) );
 		}
 		return $links;
 	}
@@ -109,8 +109,7 @@ final class Updates {
 	private static function message( array $release ): string {
 		return esc_html(
 			sprintf(
-				/* translators: 1: new version, 2: installed version */
-				__( 'IRIOS Media for WooCommerce %1$s is available (installed: %2$s).', 'irios-woocommerce' ),
+				'IRIOS Media for WooCommerce %1$s is available (installed: %2$s).',
 				$release['version'],
 				IRIOS_WC_VERSION
 			)
@@ -139,10 +138,10 @@ final class Updates {
 		printf(
 			'<div class="notice notice-info"><p><strong>%1$s</strong> %2$s</p><p>%3$s · <a href="%4$s">%5$s</a></p></div>',
 			self::message( $release ), // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in message()
-			esc_html__( 'The plugin does not update automatically: to update, download the zip and upload it in Plugins → Add New → Upload Plugin (WordPress offers to replace the installed version and the settings are kept).', 'irios-woocommerce' ),
+			esc_html( 'The plugin does not update automatically: to update, download the zip and upload it in Plugins → Add New → Upload Plugin (WordPress offers to replace the installed version and the settings are kept).' ),
 			self::links( $release ), // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in links()
 			esc_url( $dismiss ),
-			esc_html__( 'Dismiss', 'irios-woocommerce' )
+			esc_html( 'Dismiss' )
 		);
 	}
 

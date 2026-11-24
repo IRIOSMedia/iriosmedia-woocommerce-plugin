@@ -10,11 +10,41 @@ export function isConfigured() {
 	return !! ( window.iriosWooConfig && cfg.jsDomain && cfg.storeId );
 }
 
+/** Format irios-loader.js requires for the language of a banner, video or product auction: es or es-ES. */
+export var LANGUAGE_FORMAT = /^[a-z]{2,3}(-[A-Z]{2,3})?$/;
+
+/**
+ * A locale in the format irios-loader.js accepts: es-ES as is, es_ES or es-es rewritten as es-ES and, if the region
+ * cannot be used, the language alone (es). null if there is no language in it.
+ */
+export function normalizeLanguage( value ) {
+	if ( typeof value !== 'string' ) {
+		return null;
+	}
+	var parts = value.trim().split( /[-_]/ );
+	var language = parts[ 0 ].toLowerCase();
+	var tag = parts.length > 1 ? language + '-' + parts[ 1 ].toUpperCase() : language;
+	if ( LANGUAGE_FORMAT.test( tag ) ) {
+		return tag;
+	}
+	return LANGUAGE_FORMAT.test( language ) ? language : null;
+}
+
+/**
+ * Language of every banner, video and Sponsored Products auction: the store's (cfg.language, printed by PHP from the
+ * store locale). null if it is not usable: then the auction is skipped, since irios-loader.js would reject it.
+ */
+export function auctionLanguage() {
+	return normalizeLanguage( cfg.language );
+}
+
 export var SESSION_KEY = 'irios_session_id';
 export var DEDUP_MS = 2000;
 
 export var state = {
 	started: false,
+	// Consent was given on this page: withdrawing it then has something to erase (tracker.mjs stop)
+	consented: false,
 	ready: false,
 	queue: [],
 	// uids of the logged-in customer (CRM, email, phone). The browser one (irs1P cookie) is added by the Irios script to

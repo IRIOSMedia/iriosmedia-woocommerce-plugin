@@ -34,6 +34,22 @@ describe("a sensitive page", () => {
     }
   });
 
+  it("a product added to the cart from it is still sent: the server already left out the sensitive ones", async () => {
+    // The server leaves only the products that are not sensitive in the event; a cart with only sensitive ones leaves none
+    const responses = [{ uids: UIDS, events: [] }, { uids: UIDS, events: [{ id: "add-to-cart", products: [{ id: "20", price: 30, quantity: 1 }] }] }];
+    const { log, window, document } = open({
+      page: { type: "product", product, variable: false, pageType: "PRODUCT_DETAIL", category: ["Health"], sensitive: true },
+      context: () => responses.shift() || { uids: UIDS, events: [] },
+    });
+    await settle();
+    document.body.dispatchEvent(new window.CustomEvent("wc-blocks_added_to_cart"));
+    await settle();
+
+    expect(ids(log.events)).toEqual(["add-to-cart"]);
+    expect(log.events[0].products).toEqual([{ id: "20", price: 30, quantity: 1 }]);
+    expect(log.events[0].uids).toEqual(UIDS);
+  });
+
   it("the variation chosen on a sensitive product is no event either", async () => {
     const { log, window } = open({
       page: { type: "product", product, variable: true, sensitive: true },

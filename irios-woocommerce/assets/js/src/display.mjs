@@ -1,5 +1,5 @@
 import { adInfoButton } from './ad-info.mjs';
-import { DEBUG, answerBreakdown, cfg, debug, loaderReady, ms, now, page, warnTheme } from './config.mjs';
+import { DEBUG, answerBreakdown, auctionLanguage, cfg, debug, loaderReady, ms, now, page, warnTheme } from './config.mjs';
 import { adUser } from './consent.mjs';
 import { findGrid, selector } from './search-ads.mjs';
 import { loadLoader } from './tracker.mjs';
@@ -55,8 +55,7 @@ export function inGridTarget() {
 }
 
 /**
- * Places auto-positioned banners (printed hidden in the footer), centred: right above the category listing (after
- * its result count and sorting), at the end of it (after the grid and its sorting and pagination controls), or before
+ * Places auto-positioned banners (printed hidden in the footer), centred: right above the category listing (after its result count and sorting), at the end of it (after the grid and its sorting and pagination controls), or before
  * the product page tabs (the description being the first). If there is no spot, the slot is removed.
  */
 export function placeBanners() {
@@ -113,9 +112,10 @@ export function placeBanners() {
 }
 
 /**
- * IRIOS page context of the banners' auction: the page's type (pageType) and what that type requires, the search
- * (SEARCH) or the category path (CATEGORY, PRODUCT_DETAIL). null when there is no type (a page the plugin does not
- * classify and whose banners give none) or the type lacks what it requires: then no ads are requested.
+ * IRIOS page context of the banners' auction: the page's type (pageType), the store's language and what that type
+ * requires, the search (SEARCH) or the category path (CATEGORY, PRODUCT_DETAIL). null when there is no type (a page
+ * the plugin does not classify and whose banners give none), no valid language or the type lacks what it requires:
+ * then no ads are requested.
  */
 export function bannerPage( slots ) {
 	var pageType = page.pageType;
@@ -129,7 +129,13 @@ export function bannerPage( slots ) {
 	if ( ! pageType ) {
 		return null;
 	}
-	var context = { pageType: pageType };
+	// irios-loader.js rejects a banner or video auction without the language: without a usable one, no auction
+	var language = auctionLanguage();
+	if ( ! language ) {
+		debug( 'banners not requested: the store has no valid language (' + cfg.language + ')' );
+		return null;
+	}
+	var context = { pageType: pageType, language: language };
 	if ( pageType === 'SEARCH' ) {
 		// Banners on the search page: the search goes too (IRIOS requires it for this page type)
 		context.searchQuery = String( page.value || '' ).trim().slice( 0, 255 );
@@ -174,7 +180,7 @@ export function renderBanners() {
 	} );
 	var context = bannerPage( slots );
 	if ( ! context ) {
-		return; // no IRIOS page type for this page: no auction (the slots stay empty)
+		return; // no IRIOS page type or language for this page: no auction (the slots stay empty)
 	}
 	var start = now();
 	loadLoader()

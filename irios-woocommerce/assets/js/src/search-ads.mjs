@@ -1,5 +1,5 @@
 import { addLabel, trackAd, wireBlockAddToCart } from './ad-info.mjs';
-import { cfg, debug, debugTiming, now, page, unitsLabel, warnTheme } from './config.mjs';
+import { auctionLanguage, cfg, debug, debugTiming, normalizeLanguage, now, page, unitsLabel, warnTheme } from './config.mjs';
 import { adUser } from './consent.mjs';
 import { loadLoader, revealResults } from './tracker.mjs';
 
@@ -104,7 +104,9 @@ export function requestAds( config, pageType, searchQuery, layout, timing, image
 	var units = ( config.units || [] ).filter( function ( u ) {
 		return u && u.adUnit && u.auth && u.positions && u.positions.length;
 	} );
-	if ( ! units.length ) {
+	// Same language as every other auction; irios-loader.js rejects a product auction without a valid one
+	var language = normalizeLanguage( config.language ) || auctionLanguage();
+	if ( ! units.length || ! language ) {
 		return Promise.resolve( null );
 	}
 	return loadLoader()
@@ -114,7 +116,7 @@ export function requestAds( config, pageType, searchQuery, layout, timing, image
 			var loader = new window.IriosLoader( Object.assign( adUser( pageType ), {
 				pageType: pageType,
 				searchQuery: String( searchQuery ).slice( 0, 255 ),
-				language: config.language,
+				language: language,
 				adUnits: units.map( function ( u ) {
 					return { id: u.adUnit, auth: u.auth, type: 'product', maxAds: u.positions.length };
 				} ),

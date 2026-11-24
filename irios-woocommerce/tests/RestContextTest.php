@@ -3,6 +3,7 @@
 namespace Irios\WooCommerce\Tests;
 
 use Brain\Monkey\Functions;
+use Irios\WooCommerce\Consent;
 use Irios\WooCommerce\Events;
 use Irios\WooCommerce\Identity;
 use Irios\WooCommerce\Rest;
@@ -44,6 +45,42 @@ final class RestContextTest extends WordPressTestCase {
 		);
 		$this->assertSame( array( 'add-to-cart' ), array_column( $data['events'], 'id' ) );
 		$this->assertSame( array(), $this->pending_for( '7' ), 'delivered events are removed' );
+	}
+
+	public function test_a_logged_in_customer_seen_with_consent_has_consent_as_their_last_answer(): void {
+		$this->given_consent();
+		$this->user_id                            = 7;
+		$this->user_meta[7][ Consent::USER_META ] = 'no';
+
+		$this->context();
+
+		$this->assertSame( 'yes', $this->user_meta[7][ Consent::USER_META ] );
+	}
+
+	public function test_a_yes_is_stamped_so_the_next_incremental_read_of_the_customers_brings_them_without_an_order(): void {
+		$this->given_consent();
+		$this->user_id                               = 7;
+		$this->user_meta[7][ Consent::USER_META ]    = 'no';
+		$this->user_meta[7][ Consent::USER_META_AT ] = '2026-01-01 00:00:00';
+
+		$this->context();
+
+		$this->assertGreaterThan( '2026-01-01 00:00:00', $this->user_meta[7][ Consent::USER_META_AT ], 'what the feed\'s updated_since filters on' );
+		$this->assertMatchesRegularExpression( '/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $this->user_meta[7][ Consent::USER_META_AT ] );
+
+		$this->user_meta[7][ Consent::USER_META_AT ] = 'unchanged';
+		$this->context();
+		$this->assertSame( 'unchanged', $this->user_meta[7][ Consent::USER_META_AT ], 'seen again with the same answer: not stamped again' );
+	}
+
+	public function test_without_consent_the_customers_last_answer_is_left_as_it_was(): void {
+		$this->given_no_consent();
+		$this->user_id                            = 7;
+		$this->user_meta[7][ Consent::USER_META ] = 'yes';
+
+		$this->context();
+
+		$this->assertSame( 'yes', $this->user_meta[7][ Consent::USER_META ], 'only a withdrawal says no (Revocations)' );
 	}
 
 	public function test_anonymous_visitor_gets_events_but_no_uids(): void {

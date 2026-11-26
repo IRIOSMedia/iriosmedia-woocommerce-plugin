@@ -106,10 +106,13 @@ final class Catalog {
 		return null === $chosen ? null : wc_get_product( $chosen );
 	}
 
-	/** Product line for an event: catalog id, displayed price and quantity. */
+	/**
+	 * Product line for an event: catalog id, displayed price and quantity. The id is the one IRIOS Media knows: in a
+	 * multi-language store, that of the default-language product, also on a translated page (Languages).
+	 */
 	public static function line( \WC_Product $product, int $quantity = 1 ): array {
 		return array(
-			'id'       => (string) $product->get_id(),
+			'id'       => (string) Languages::original_id( (int) $product->get_id() ),
 			'price'    => round( (float) wc_get_price_to_display( $product ), 2 ),
 			'quantity' => max( 1, $quantity ),
 		);

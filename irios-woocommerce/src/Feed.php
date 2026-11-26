@@ -12,6 +12,7 @@ namespace Irios\WooCommerce;
  *   GET /wp-json/irios/v1/customers?updated_since=&page=&per_page=   (registered customers whose last answer is yes)
  *   GET /wp-json/irios/v1/customers/<id>
  *   GET /wp-json/irios/v1/revocations?revoked_after=&after_id=&page=&per_page=   (consent withdrawals, Revocations)
+ *   GET /wp-json/irios/v1/translations?ids=   (multi-language stores, Translations)
  *
  * Orders with a product of a sensitive category are never returned (Sensitive): the purchase does not reach IRIOS Media.
  *
@@ -37,7 +38,7 @@ final class Feed {
 		}
 		$uri = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
 		// The withdrawals are read with an API key, but sent with POST by the storefront (Rest), with the visitor's cookies
-		$routes = 'GET' === self::method() ? 'orders|customers|revocations' : 'orders|customers';
+		$routes = 'GET' === self::method() ? 'orders|customers|revocations|translations' : 'orders|customers';
 		return 1 === preg_match( '#/' . preg_quote( self::NAMESPACE, '#' ) . '/(' . $routes . ')(/|\?|$)#', $uri )
 			|| 1 === preg_match( '#[?&]rest_route=/' . preg_quote( self::NAMESPACE, '#' ) . '/(' . $routes . ')(/|&|$)#', rawurldecode( $uri ) );
 	}
@@ -104,6 +105,16 @@ final class Feed {
 				'methods'             => 'GET',
 				'callback'            => array( self::class, 'customer' ),
 				'permission_callback' => array( self::class, 'allowed' ),
+			)
+		);
+		register_rest_route(
+			self::NAMESPACE,
+			'/translations',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( Translations::class, 'response' ),
+				'permission_callback' => array( self::class, 'allowed' ),
+				'args'                => array( 'ids' => array( 'type' => 'string' ) ),
 			)
 		);
 		// Same path as the storefront's POST (Rest): WordPress keeps both, each with its own method and permission
@@ -226,8 +237,9 @@ final class Feed {
 				continue;
 			}
 			$items[] = array(
-				'product_id'   => (int) $item->get_product_id(),
-				'variation_id' => (int) $item->get_variation_id(),
+				// In a multi-language store, the default-language ids (the ones in IRIOS Media), whatever the language of the order
+				'product_id'   => Languages::original_id( (int) $item->get_product_id() ),
+				'variation_id' => Languages::original_id( (int) $item->get_variation_id() ),
 				'quantity'     => (int) $item->get_quantity(),
 				'subtotal'     => wc_format_decimal( $item->get_subtotal() ),
 				'subtotal_tax' => wc_format_decimal( $item->get_subtotal_tax() ),

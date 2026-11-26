@@ -548,6 +548,25 @@ one. If that page has no usable language, it takes the site language from **Sett
 Sponsored Products all use the same one. If there is no usable language at all, the store simply shows no ads (it
 never breaks the page); push notifications work all the same.
 
+### Multi-language stores (WPML and Polylang)
+
+With WPML (and WooCommerce Multilingual) or Polylang (and Polylang for WooCommerce), each translation of a product is
+a separate WooCommerce product with its own ID, linked to the product in the default language. In IRIOS Media it is
+one product, with the ID of the default-language product and its content in every language of your IRIOS Media
+catalog. The plugin takes care of this, with nothing to set up:
+
+- **Events, purchases and stock changes** always carry the ID of the default-language product, also when the shopper
+  is on a translated page. Otherwise IRIOS Media would not recognize the product.
+- **Sponsored Products** come from IRIOS Media with that ID, and the plugin shows the translation in the language of
+  the page.
+- **The IRIOS Media sync service** reads each product with its translations through the plugin
+  (`GET /wp-json/irios/v1/translations`, with the same API key as the rest of its access), and sends the content of
+  each language of the catalog. A language the product is not translated into gets the default-language content.
+
+The languages sent are the ones of your IRIOS Media catalog, chosen when it is created; other languages of the store
+are left out. Translation plugins that translate the page on the fly without creating products (TranslatePress,
+Weglot) are not supported: the store has no separate content for each language.
+
 ## Theme compatibility
 
 Events, identity and the look of the sponsored product card use standard WooCommerce hooks and templates, so they work

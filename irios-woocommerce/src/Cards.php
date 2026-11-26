@@ -39,14 +39,16 @@ final class Cards {
 	}
 
 	/**
-	 * @param int[] $ids Catalog ids (simple or variation), in ad order.
+	 * @param int[] $ids Catalog ids (simple or variation), in ad order. In a multi-language store they are the
+	 *                   default-language ids (IRIOS Media's): the card shows the translation of the page's language,
+	 *                   and the card id stays the IRIOS Media one (for the ad tracking).
 	 * @return array<int,array<string,mixed>> With html (classic/block) or with the ad data (data).
 	 */
 	public static function render( array $ids, string $layout, string $image_size = '' ): array {
 		$cards = array();
 		foreach ( $ids as $id ) {
 			self::$step = 'product ' . $id;
-			$ad_product = wc_get_product( $id );
+			$ad_product = wc_get_product( Languages::local_id( (int) $id ) );
 			if ( ! $ad_product instanceof \WC_Product ) {
 				continue;
 			}
@@ -55,7 +57,7 @@ final class Cards {
 				continue; // unpublished or hidden: not advertised even if Irios still has it
 			}
 			if ( self::LAYOUT_DATA === $layout ) {
-				$cards[] = self::data( $ad_product, $product, $image_size );
+				$cards[] = self::data( (int) $id, $ad_product, $product, $image_size );
 				continue;
 			}
 			$html = self::LAYOUT_BLOCK === $layout ? self::block_card( $product ) : self::classic_card( $product );
@@ -66,7 +68,7 @@ final class Cards {
 				$html = self::link_to( $html, $product->get_permalink(), $ad_product->get_permalink() );
 			}
 			$cards[] = array(
-				'id'        => (string) $ad_product->get_id(),
+				'id'        => (string) $id,
 				'productId' => $product->get_id(),
 				'html'      => $html,
 			);
@@ -76,16 +78,16 @@ final class Cards {
 
 	/**
 	 * Ad data for cloning a result: the product shown is the parent (or the simple product), and the link points to the
-	 * advertised variation.
+	 * advertised variation. The id is the IRIOS Media one ($ad_id); productId, the product shown on the page.
 	 *
 	 * @return array{id:string,productId:int,link:string,title:string,image:string,excerpt:string,date:string}
 	 */
-	private static function data( \WC_Product $ad_product, \WC_Product $product, string $image_size = '' ): array {
+	private static function data( int $ad_id, \WC_Product $ad_product, \WC_Product $product, string $image_size = '' ): array {
 		// Each field separately: if one fails (other plugins hooked into its filters), it is left empty and the rest
 		// still go out.
 		$id = $product->get_id();
 		return array(
-			'id'        => (string) $ad_product->get_id(),
+			'id'        => (string) $ad_id,
 			'productId' => $id,
 			'link'      => self::field( 'link', static fn() => (string) $ad_product->get_permalink() ),
 			'title'     => self::field( 'title', static fn() => html_entity_decode( $product->get_name(), ENT_QUOTES, 'UTF-8' ) ),

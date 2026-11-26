@@ -82,9 +82,12 @@ final class Stock {
 		}
 	}
 
-	/** Id the sync service reads: the parent of a variation, the product itself otherwise. */
+	/**
+	 * Id the sync service reads: the parent of a variation, the product itself otherwise. In a multi-language store,
+	 * that of the default-language product (the stock is shared by the translations).
+	 */
 	public static function product_id( \WC_Product $product ): int {
-		return $product->is_type( 'variation' ) ? (int) $product->get_parent_id() : (int) $product->get_id();
+		return Languages::original_id( $product->is_type( 'variation' ) ? (int) $product->get_parent_id() : (int) $product->get_id() );
 	}
 
 	private static function notify( int $product_id ): void {

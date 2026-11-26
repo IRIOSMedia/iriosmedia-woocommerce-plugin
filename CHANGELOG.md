@@ -6,6 +6,11 @@ Changes in each version of IRIOS Media for WooCommerce. Download any version fro
 
 ### Added
 
+- **Multi-language stores with WPML or Polylang.** Each translation of a product is another WooCommerce product, but
+  IRIOS Media has one product per item. Events, purchases and stock changes now carry the ID of the default-language
+  product, also on translated pages, and Sponsored Products are shown with the translation of the page's language.
+  The new `GET /wp-json/irios/v1/translations` endpoint gives the IRIOS Media sync service each product's translations,
+  so the catalog gets the content of every language.
 - **One catalog of positions with the IRIOS Media ad unit names.** The positions are the same in every IRIOS Media
   integration, and the ad units are named after them (`plp-top`, `pdp-main`…, with `-mobile` for the mobile ones).
   The settings show each position's ad unit name, in the shared order, and choosing a position with an empty Tag

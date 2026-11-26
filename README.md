@@ -511,6 +511,10 @@ Create one webhook for each topic in the table below:
 | Product updated |
 | Product deleted |
 
+The **Product updated** webhook also covers stock changes: when an order (or anything else) changes a product's stock
+or stock status, the plugin makes WooCommerce send it too, so a product that runs out stops being advertised within
+minutes. No other webhook is needed for that.
+
 **Do not create order or customer webhooks** pointing to the sync service, and delete any that exist. In those
 webhooks, WooCommerce sends the full order or customer, with names, emails and addresses. The plugin's API exists to
 avoid exactly that, so orders and customers are read through it instead. The sync service rejects order and customer

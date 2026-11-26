@@ -3,7 +3,8 @@
 namespace Irios\WooCommerce;
 
 /**
- * Bootstrap: registers the settings, the context endpoint, the storefront JS and the new-version notice.
+ * Bootstrap: registers the settings, the context endpoint, the storefront JS, the sync service's API and webhooks, and
+ * the new-version notice.
  */
 final class Plugin {
 
@@ -34,6 +35,7 @@ final class Plugin {
 		Push::register();
 		Orders::register();
 		Feed::register();
+		Stock::register(); // stock changes from sales also notify the Product updated webhooks
 		add_action( 'wp_enqueue_scripts', array( Assets::class, 'enqueue' ) );
 		add_action( 'wp_head', array( Assets::class, 'anti_flicker' ), 1 );
 		add_action( 'wp_head', array( Assets::class, 'early_context' ), 1 );

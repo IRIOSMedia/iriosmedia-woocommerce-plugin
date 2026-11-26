@@ -36,6 +36,12 @@ Changes in each version of IRIOS Media for WooCommerce. Download any version fro
   Whatever cannot be checked (a product that no longer exists) counts as sensitive. Nothing changes until a category
   is marked or searches are set as sensitive.
 
+- **Stock changes from orders now notify the Product updated webhook.** When a sale (or anything else that changes
+  the stock directly) changes a product's stock or stock status, WooCommerce did not send the **Product updated**
+  webhook, so a product that ran out kept being advertised until the next periodic read. Now it does, through the
+  same webhook, with its usual signature, retries and logs: there is no new webhook to create. A variation counts as
+  its parent product, and each product is sent at most once per order, however many of its variations were bought.
+
 ### Changed
 
 - **Ads show sooner.** The page opens the connection to the IRIOS Media script domain in the `<head>` (preconnect), and

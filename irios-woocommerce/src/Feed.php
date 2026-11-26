@@ -13,6 +13,7 @@ namespace Irios\WooCommerce;
  *   GET /wp-json/irios/v1/customers/<id>
  *   GET /wp-json/irios/v1/revocations?revoked_after=&after_id=&page=&per_page=   (consent withdrawals, Revocations)
  *   GET /wp-json/irios/v1/translations?ids=   (multi-language stores, Translations)
+ *   GET /wp-json/irios/v1/sync   (URL and secret of the product webhooks, SyncWebhooks)
  *
  * Orders with a product of a sensitive category are never returned (Sensitive): the purchase does not reach IRIOS Media.
  *
@@ -38,7 +39,7 @@ final class Feed {
 		}
 		$uri = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
 		// The withdrawals are read with an API key, but sent with POST by the storefront (Rest), with the visitor's cookies
-		$routes = 'GET' === self::method() ? 'orders|customers|revocations|translations' : 'orders|customers';
+		$routes = 'GET' === self::method() ? 'orders|customers|revocations|translations|sync' : 'orders|customers';
 		return 1 === preg_match( '#/' . preg_quote( self::NAMESPACE, '#' ) . '/(' . $routes . ')(/|\?|$)#', $uri )
 			|| 1 === preg_match( '#[?&]rest_route=/' . preg_quote( self::NAMESPACE, '#' ) . '/(' . $routes . ')(/|&|$)#', rawurldecode( $uri ) );
 	}

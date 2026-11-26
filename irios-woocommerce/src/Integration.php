@@ -73,23 +73,6 @@ final class Integration extends \WC_Integration {
 			),
 
 			// ---- Sensitive data (health…): kept away from the shopper's profile ------------------------------------
-			'section_sync'             => array(
-				'title'       => 'IRIOS Media sync service',
-				'type'        => 'title',
-				'description' => 'IRIOS Media reads your catalog through the WooCommerce REST API. With these two values, which IRIOS Media gives you, the plugin creates the WooCommerce webhooks that tell it at once when a product changes or runs out of stock (product created, updated and deleted). Without them, changes arrive at the next periodic read.',
-			),
-			'sync_webhook_url'         => array(
-				'title'       => 'Webhook URL',
-				'type'        => 'text',
-				'description' => 'For example https://sync.example.com/v1/webhooks/woocommerce/your-store. Leave it empty to remove the webhooks.',
-				'default'     => $defaults['sync_webhook_url'],
-			),
-			'sync_webhook_secret'      => array(
-				'title'       => 'Webhook secret',
-				'type'        => 'password',
-				'description' => 'WooCommerce signs every delivery with it. It is never shown in the store.',
-				'default'     => $defaults['sync_webhook_secret'],
-			),
 			'section_sensitive'        => array(
 				'title'       => 'Sensitive Data',
 				'type'        => 'title',
@@ -225,9 +208,7 @@ final class Integration extends \WC_Integration {
 	/** Renders the settings and hides each optional section (Sponsored Products, Banners) until it is enabled. */
 	public function admin_options(): void {
 		echo Compatibility::warning_html(); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in warning_html()
-		if ( '' !== ( new Settings( $this->settings ) )->sync_webhook_url() ) {
-			$this->form_fields['sync_webhook_url']['description'] .= ' ' . SyncWebhooks::status();
-		}
+		$this->form_fields['store_id']['description'] .= ' ' . SyncWebhooks::status( new Settings( $this->settings ) );
 		parent::admin_options();
 		wc_enqueue_js(
 			"( function ( $ ) {
@@ -766,42 +747,14 @@ final class Integration extends \WC_Integration {
 		if ( 'yes' === ( $this->settings['push_enabled'] ?? 'no' ) && null === $settings->push() ) {
 			\WC_Admin_Settings::add_error( 'IRIOS Media: to ask for push notifications, add the push ad unit and its auth. Until then, nothing is asked.' );
 		}
-		self::save_sync_webhooks( $settings );
-		return $saved;
-	}
-
-	/** The product webhooks to the sync service, as the settings say (SyncWebhooks). */
-	private static function save_sync_webhooks( Settings $settings ): void {
-		$url = $settings->sync_webhook_url();
-		if ( '' !== $url && '' === $settings->sync_webhook_secret() ) {
-			\WC_Admin_Settings::add_error( 'IRIOS Media: the webhooks to the sync service need the webhook secret IRIOS Media gives you. Until then, they are not created.' );
-			return;
-		}
+		// The product webhooks to the sync service follow the domain and the Store ID just saved (SyncWebhooks)
+		Settings::forget();
 		try {
-			SyncWebhooks::sync( $url, $settings->sync_webhook_secret(), get_current_user_id() );
+			SyncWebhooks::maintain();
 		} catch ( \Exception $e ) {
-			\WC_Admin_Settings::add_error( 'IRIOS Media: the webhooks to the sync service could not be saved: ' . $e->getMessage() );
+			\WC_Admin_Settings::add_error( 'IRIOS Media: the product webhooks to the sync service could not be set up: ' . $e->getMessage() );
 		}
-	}
-
-	/** @param string $key @param mixed $value */
-	public function validate_sync_webhook_url_field( $key, $value ): string {
-		$value = trim( (string) $value );
-		if ( '' === $value || Settings::valid_webhook_url( $value ) ) {
-			return $value;
-		}
-		\WC_Admin_Settings::add_error( 'IRIOS Media: the webhook URL must be an https address (http only for a local test host).' );
-		return (string) $this->get_option( $key );
-	}
-
-	/** @param string $key @param mixed $value */
-	public function validate_sync_webhook_secret_field( $key, $value ): string {
-		$value = trim( (string) $value );
-		if ( '' === $value || strlen( $value ) >= 16 ) {
-			return $value;
-		}
-		\WC_Admin_Settings::add_error( 'IRIOS Media: the webhook secret is too short (at least 16 characters).' );
-		return (string) $this->get_option( $key );
+		return $saved;
 	}
 
 	/** @param string $key @param mixed $value */

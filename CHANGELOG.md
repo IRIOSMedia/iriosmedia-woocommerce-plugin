@@ -2,6 +2,16 @@
 
 Changes in each version of IRIOS Media for WooCommerce. Download any version from the [releases](../../releases).
 
+## Unreleased
+
+### Changed
+
+- **The webhooks to the IRIOS Media sync service need no configuration.** The plugin sets them up itself as soon as
+  IRIOS Media is enabled with its domain and Store ID: they go to `https://<IRIOS Media domain>/v1/webhooks/woocommerce/
+  <Store ID>`, signed with a secret the plugin generates and the sync service reads with its REST API key
+  (`GET /wp-json/irios/v1/sync`). They are kept up to date every hour and turned back on if WooCommerce disabled them.
+  The **Webhook URL** and **Webhook secret** settings of 1.3.0 are gone; the webhooks created with them are updated.
+
 ## 1.3.0 - 2026-11-26
 
 ### Added

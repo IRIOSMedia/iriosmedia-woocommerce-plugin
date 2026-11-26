@@ -36,6 +36,7 @@ final class Plugin {
 		Orders::register();
 		Feed::register();
 		Stock::register(); // stock changes from sales also notify the Product updated webhooks
+		SyncWebhooks::register(); // the product webhooks to the sync service, with nothing to configure
 		add_action( 'wp_enqueue_scripts', array( Assets::class, 'enqueue' ) );
 		add_action( 'wp_head', array( Assets::class, 'anti_flicker' ), 1 );
 		add_action( 'wp_head', array( Assets::class, 'early_context' ), 1 );

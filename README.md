@@ -53,8 +53,7 @@ Before you start, ask IRIOS Media for these details:
 - An **ad unit ID and its auth** for each place where ads will appear: each Sponsored Products position, each Display
   placement, and the push ad unit. An *ad unit* is what IRIOS Media creates for each of those places, and its *auth*
   is the key that goes with it. Each Display ad unit also has a format: image or video.
-- For the sync service, a **webhook URL** and **secret**. IRIOS Media gives you these through a secure
-  channel ([Webhooks](#webhooks)).
+- Nothing for the webhooks: the plugin sets them up itself ([Webhooks](#webhooks)).
 
 Then follow these steps:
 
@@ -72,8 +71,8 @@ Then follow these steps:
 7. **Push Notifications** (optional). Enable it and add the push ad unit. Check that the service worker answers at
    `/irios-sw.js`, and send that path to IRIOS Media ([Push Notifications](#push-notifications)).
 8. **Sync service access.** Create a read-only WooCommerce REST API key and send it to IRIOS Media
-   ([Access for the IRIOS Media sync service](#sync-service)). Then paste the webhook URL and secret that IRIOS Media
-   gave you in the settings: the plugin creates the product webhooks ([Webhooks](#webhooks)).
+   ([Access for the IRIOS Media sync service](#sync-service)). The product webhooks need nothing: the plugin sets them
+   up itself ([Webhooks](#webhooks)).
 9. **Caching and optimization.** Exclude what must not be cached or delayed ([Caching, optimization and
    CDN](#caching)).
 10. **Verify** everything in a browser ([Verification](#verification)).
@@ -159,7 +158,7 @@ All the settings are in **WooCommerce → Settings → Integration → IRIOS Med
 
 A few things apply to all of them:
 
-- Nothing configured here is secret, except the webhook secret: all the rest reaches the browser.
+- Nothing configured here is secret: all of it reaches the browser.
 - The settings page is in English, as in every IRIOS Media integration.
 - Every ad unit ID and auth comes from IRIOS Media. An ad unit is created there for each position, placement or push,
   and its auth is the key that goes with it.
@@ -174,8 +173,7 @@ These are the settings every store needs.
 |---|---|
 | Enable IRIOS Media | The main switch. It is on by default, but nothing is loaded until the domain and the Store ID are set. |
 | IRIOS Media domain | The domain of your store's network, given by IRIOS Media. Write it without `https://` and without a path (e.g. `example.iriosmedia.online`). The IRIOS Media scripts are loaded from it. |
-| Store ID | The numeric id of your store in IRIOS Media, given by IRIOS Media. |
-| Webhook URL and Webhook secret | Under **IRIOS Media sync service**. Given by IRIOS Media. With them, the plugin creates the WooCommerce webhooks that tell the sync service at once when a product changes or runs out of stock. Leave the URL empty to remove them. See [Webhooks](#webhooks). |
+| Store ID | The numeric id of your store in IRIOS Media, given by IRIOS Media. Below it, the page says whether the product webhooks to the sync service are working ([Webhooks](#webhooks)). |
 | Consent | How the plugin knows whether the visitor accepted marketing cookies. The options are **WP Consent API** (recommended, with a compatible banner), **Asesor de Cookies RGPD** (reads that banner's `cdp_cookie_consent` cookie) and **Always** (when the store handles consent another way). See below. |
 
 <a id="consent"></a>
@@ -474,8 +472,8 @@ To give access:
    channel agreed with IRIOS Media.
 
 The sync service also uses the same key for WooCommerce's own API, but only to read the catalog. The key is read only,
-so it is not used to create webhooks: the plugin creates them from its settings ([Webhooks](#webhooks)). To revoke
-access, delete the key.
+so it is not used to create webhooks: the plugin creates them itself ([Webhooks](#webhooks)). With the same key it
+also reads the secret of those webhooks. To revoke access, delete the key.
 
 The REST API must be reachable. Some security plugins or firewalls block `/wp-json/` for visitors who are not logged
 in, or by IP. If yours does, it must allow `/wp-json/irios/v1/` and `/wp-json/wc/v3/` with the key. Shoppers' browsers
@@ -492,23 +490,26 @@ JSON list (`[]` if there is no paid order yet), not an error.
 Webhooks tell the sync service when a product changes. Without them, changes reach IRIOS Media at the next periodic
 read. With them, they arrive within minutes.
 
-IRIOS Media sends you a **webhook URL** and a **secret** through a secure channel (not plain email). The secret is a
-random string that WooCommerce uses to sign each delivery.
+There is nothing to configure: the plugin sets them up itself as soon as IRIOS Media is enabled with its domain and
+Store ID.
 
-You do not create the webhooks by hand: the plugin does it.
+- **Where they go:** `https://<IRIOS Media domain>/v1/webhooks/woocommerce/<Store ID>`. The IRIOS Media domain sends
+  them on to the sync service.
+- **Secret:** the plugin generates it the first time and keeps it in the store. WooCommerce signs each delivery with
+  it. The sync service reads it with the REST API key you already gave it (`GET /wp-json/irios/v1/sync`), so it never
+  has to be sent or copied anywhere.
+- **Which ones:** one per product topic (created, updated and deleted), named `IRIOS Media sync service: <topic>`. You
+  can see them in **WooCommerce → Settings → Advanced → Webhooks**, but do not edit them there: the plugin puts them
+  back as they should be when the IRIOS Media settings are saved, when the plugin is updated, and every hour. It also
+  turns back on any that WooCommerce disabled. The store's other webhooks are never touched.
+- **Status:** below the **Store ID** in the settings, the page says whether they are working.
+- **Removing them:** they are removed when IRIOS Media is disabled or its domain or Store ID is emptied, and when the
+  plugin is uninstalled.
 
-1. Go to **WooCommerce → Settings → Integration → IRIOS Media**, section **IRIOS Media sync service**.
-2. Paste the **Webhook URL** and the **Webhook secret**, and click **Save changes**.
-3. Below the URL, the page shows `Webhooks active: product.created, product.updated, product.deleted.`
+If you created these webhooks by hand with an earlier version, delete them: otherwise each change is sent twice.
 
-The plugin creates one webhook for each product topic (created, updated and deleted), named
-`IRIOS Media sync service: <topic>`. You can see them in **WooCommerce → Settings → Advanced → Webhooks**, but do not
-edit them there: the next save of the IRIOS Media settings puts them back as the settings say. Each save also updates
-the URL and the secret, and turns back on any webhook that WooCommerce disabled. To remove them, empty the URL and
-save. Uninstalling the plugin removes them too. The store's other webhooks are never touched.
-
-If you created these webhooks by hand with an earlier version, delete them once the plugin has created its own:
-otherwise each change is sent twice.
+For developers: the `irios_woocommerce_sync_webhook_url` filter changes the URL (for example, to a sync service on a
+local test machine); returning an empty string removes the webhooks.
 
 The **Product updated** webhook also covers stock changes: when an order (or anything else) changes a product's stock
 or stock status, the plugin makes WooCommerce send it too, so a product that runs out stops being advertised within
@@ -521,12 +522,9 @@ webhooks (HTTP 410) without reading them. WooCommerce then shows a delivery erro
 after a few failed deliveries.
 
 **If WooCommerce disables a webhook.** After 5 failed deliveries in a row, WooCommerce sets the webhook to
-**Disabled**, and the settings page says so below the URL. Changes still reach IRIOS Media through the periodic read,
-but with more delay. To fix it:
-
-1. Fix the cause, for example a firewall that blocks the delivery, or a URL that changed.
-2. Go to **WooCommerce → Settings → Integration → IRIOS Media** and click **Save changes**: the plugin turns the
-   webhooks back on.
+**Disabled**, and the settings page says so below the Store ID. Changes still reach IRIOS Media through the periodic
+read, but with more delay. The plugin turns it back on within the hour; if deliveries keep failing, fix the cause (for
+example a firewall that blocks them) or ask IRIOS Media.
 
 The delivery log of each webhook is in **WooCommerce → Status → Logs**, in the sources that start with
 `webhooks-delivery`.

@@ -335,3 +335,91 @@ class WC_Customer {
 		return null;
 	}
 }
+
+/** In-memory WooCommerce webhooks (SyncWebhooksTest): what the plugin creates, updates and deletes. */
+class WC_Webhook {
+	/** @var array<int,WC_Webhook> */
+	public static array $saved = array();
+	private static int $next_id = 1;
+
+	public int $id = 0;
+	public string $name = '';
+	public string $topic = '';
+	public string $delivery_url = '';
+	public string $secret = '';
+	public string $api_version = '';
+	public string $status = 'disabled';
+	public int $user_id = 0;
+
+	public function set_name( string $name ): void {
+		$this->name = $name;
+	}
+
+	public function get_name(): string {
+		return $this->name;
+	}
+
+	public function set_topic( string $topic ): void {
+		$this->topic = $topic;
+	}
+
+	public function get_topic(): string {
+		return $this->topic;
+	}
+
+	public function set_delivery_url( string $url ): void {
+		$this->delivery_url = $url;
+	}
+
+	public function set_secret( string $secret ): void {
+		$this->secret = $secret;
+	}
+
+	public function set_api_version( string $version ): void {
+		$this->api_version = $version;
+	}
+
+	public function set_status( string $status ): void {
+		$this->status = $status;
+	}
+
+	public function get_status(): string {
+		return $this->status;
+	}
+
+	public function set_user_id( int $user_id ): void {
+		$this->user_id = $user_id;
+	}
+
+	public function get_user_id(): int {
+		return $this->user_id;
+	}
+
+	public function save(): int {
+		if ( 0 === $this->id ) {
+			$this->id = self::$next_id++;
+		}
+		self::$saved[ $this->id ] = $this;
+		return $this->id;
+	}
+
+	public function delete( bool $force = false ): void {
+		unset( self::$saved[ $this->id ] );
+	}
+
+	public static function reset(): void {
+		self::$saved   = array();
+		self::$next_id = 1;
+	}
+}
+
+class WC_Data_Store {
+	public static function load( string $type ): self {
+		return new self();
+	}
+
+	/** @return int[] */
+	public function search_webhooks( array $args = array() ): array {
+		return array_keys( WC_Webhook::$saved );
+	}
+}

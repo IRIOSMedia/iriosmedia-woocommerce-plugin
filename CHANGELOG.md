@@ -2,6 +2,16 @@
 
 Changes in each version of IRIOS Media for WooCommerce. Download any version from the [releases](../../releases).
 
+## Unreleased
+
+### Added
+
+- **The plugin creates the webhooks to the IRIOS Media sync service.** Paste the webhook URL and secret that IRIOS
+  Media gives you in the settings (new section **IRIOS Media sync service**) and save: the plugin creates the product
+  created, updated and deleted webhooks, keeps their URL and secret up to date and turns them back on if WooCommerce
+  disabled them. The settings page shows whether they are active. Emptying the URL, or uninstalling the plugin,
+  removes them. Webhooks created by hand with an earlier version must be deleted, or each change is sent twice.
+
 ## 1.2.0 - 2026-11-26
 
 ### Added

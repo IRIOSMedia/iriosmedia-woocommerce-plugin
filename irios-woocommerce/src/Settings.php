@@ -98,6 +98,10 @@ final class Settings {
 		// every search is sensitive too
 		'sensitive_categories'     => '',
 		'sensitive_searches'       => 'no',
+		// IRIOS Media sync service: product webhooks created by the plugin (SyncWebhooks). The secret never reaches the
+		// browser: only the admin settings page shows it
+		'sync_webhook_url'         => '',
+		'sync_webhook_secret'      => '',
 	);
 
 	/** @var array<string,string> */
@@ -158,6 +162,33 @@ final class Settings {
 
 	public function store_id(): ?int {
 		return ctype_digit( $this->values['store_id'] ) ? (int) $this->values['store_id'] : null;
+	}
+
+	/** Delivery URL of the product webhooks to the IRIOS Media sync service; empty: no webhooks. */
+	public function sync_webhook_url(): string {
+		return $this->values['sync_webhook_url'];
+	}
+
+	public function sync_webhook_secret(): string {
+		return $this->values['sync_webhook_secret'];
+	}
+
+	/**
+	 * A delivery URL the plugin accepts for the webhooks: https, or http only for a development host (localhost,
+	 * *.localhost, *.test, host.docker.internal), as WooCommerce itself only delivers to public addresses.
+	 */
+	public static function valid_webhook_url( string $url ): bool {
+		$parts = wp_parse_url( trim( $url ) );
+		if ( ! is_array( $parts ) || empty( $parts['host'] ) || empty( $parts['scheme'] ) ) {
+			return false;
+		}
+		$host = strtolower( (string) $parts['host'] );
+		if ( 'https' === strtolower( (string) $parts['scheme'] ) ) {
+			return true;
+		}
+		return 'http' === strtolower( (string) $parts['scheme'] )
+			&& ( 'localhost' === $host || 'host.docker.internal' === $host
+				|| 1 === preg_match( '/\.(localhost|test)$/', $host ) );
 	}
 
 

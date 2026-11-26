@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "308e64676fbe4497809eb1aaae35a315",
+    "content-hash": "37a3156e8f4eb0f256377c4f2de71690",
     "packages": [
         {
             "name": "giggsey/libphonenumber-for-php-lite",

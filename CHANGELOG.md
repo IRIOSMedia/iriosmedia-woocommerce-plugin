@@ -76,6 +76,8 @@ Changes in each version of IRIOS Media for WooCommerce. Download any version fro
 
 ### Fixed
 
+- **The plugin's author is IRIOS Media** in the WordPress plugin list, and its Composer package is
+  `iriosmedia/irios-woocommerce`.
 - **Banners and videos carry the store language**, as IRIOS Media now requires for every banner, video and Sponsored
   Products ad (an ad request without it is rejected and nothing is shown). Every ad request takes the same language:
   that of the page being viewed (with WPML or Polylang, the store version the shopper is on), as language and region
